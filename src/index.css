@@ -123,6 +123,21 @@ body {
   border-radius: 10px;
   animation: rotatePhone 1.8s ease-in-out infinite;
 }
+.rotate-continue {
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 2.5px solid #fff;
+  background: #ffffff22;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.rotate-continue:active {
+  background: #ffffff44;
+}
 @keyframes rotatePhone {
   0%, 25%   { transform: rotate(0deg); }
   60%, 100% { transform: rotate(90deg); }

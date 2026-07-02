@@ -21,19 +21,35 @@ type View =
 
 export default function App() {
   const [view, setView] = useState<View>({ name: "menu" });
+  // the landscape suggestion is OPTIONAL — dismissible, once per session
+  const [rotateDismissed, setRotateDismissed] = useState(
+    () => sessionStorage.getItem("rotate-dismissed") === "1"
+  );
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <GameProvider>
-        {/* shown only on touch devices held in portrait */}
-        <div className="rotate-overlay">
-          <div className="rotate-phone" />
-          <div style={{ fontWeight: 800, fontSize: 22 }}>I-rotate ang device mo!</div>
-          <div style={{ fontSize: 15, opacity: 0.9 }}>
-            Mas maganda ang Barangay Masagana Math Quest sa landscape view.
+        {/* landscape SUGGESTION on touch devices held in portrait —
+            optional: the player may continue in portrait */}
+        {!rotateDismissed && (
+          <div className="rotate-overlay">
+            <div className="rotate-phone" />
+            <div style={{ fontWeight: 800, fontSize: 22 }}>I-rotate ang device mo!</div>
+            <div style={{ fontSize: 15, opacity: 0.9 }}>
+              Mas maganda ang laro sa landscape view — pero pwede ring ituloy sa portrait.
+            </div>
+            <button
+              className="rotate-continue"
+              onClick={() => {
+                sessionStorage.setItem("rotate-dismissed", "1");
+                setRotateDismissed(true);
+              }}
+            >
+              Ituloy sa portrait ▶
+            </button>
           </div>
-        </div>
+        )}
         {view.name === "menu" ? (
           <MainMenu onPlay={(moduleIdx, startIndex) => setView({ name: "play", moduleIdx, startIndex })} />
         ) : (

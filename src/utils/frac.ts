@@ -19,6 +19,16 @@ export const value = (f: Frac): number => {
 
 export const isSimplest = (f: Frac): boolean => gcd(f.n, f.d) === 1;
 
+/** reduce to simplest form (proper fractions) */
+export const reduce = (f: Frac): Frac => {
+  const g = gcd(f.n, f.d) || 1;
+  return { n: f.n / g, d: f.d / g };
+};
+
+/** exact fraction addition, result in simplest form */
+export const addFracs = (a: Frac, b: Frac): Frac =>
+  reduce({ n: a.n * b.d + b.n * a.d, d: a.d * b.d });
+
 export const fmt = (f: Frac): string =>
   f.w ? `${f.w} ${f.n}/${f.d}` : `${f.n}/${f.d}`;
 

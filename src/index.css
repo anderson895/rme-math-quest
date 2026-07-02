@@ -37,3 +37,53 @@ body {
   from { translate: 0 0; }
   to   { translate: 0 -7px; }
 }
+
+/* ---- tool result animations ---- */
+
+/* pieces fall from the cutting machine and bounce into place */
+@keyframes dropIn {
+  0%   { transform: translateY(-130px) rotate(-7deg); opacity: 0; }
+  60%  { transform: translateY(10px) rotate(3deg);    opacity: 1; }
+  80%  { transform: translateY(-4px) rotate(-1deg); }
+  100% { transform: translateY(0) rotate(0); }
+}
+
+/* a piece falls down into a friend's hands */
+@keyframes flyGive {
+  0%   { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+  100% { transform: translateY(120px) scale(0.35) rotate(14deg); opacity: 0; }
+}
+
+/* candy / item pops into existence */
+@keyframes popIn {
+  0%   { transform: scale(0); }
+  70%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* pouring stream from the ladle */
+@keyframes streamPour {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* spilled droplets falling off the bowl */
+@keyframes spillDrop {
+  0%   { transform: translateY(0);    opacity: 1; }
+  100% { transform: translateY(95px); opacity: 0; }
+}
+
+/* character walks across the finished bridge */
+@keyframes walkAcross {
+  0%   { left: -6%; }
+  100% { left: 92%; }
+}
+
+/* a wrong-size piece bounces off and splashes into the river */
+@keyframes rejectSplash {
+  0%   { transform: translateY(0) rotate(0);        opacity: 1; }
+  40%  { transform: translateY(-26px) rotate(-10deg); }
+  100% { transform: translateY(80px) rotate(20deg); opacity: 0; }
+}

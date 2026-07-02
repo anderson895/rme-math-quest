@@ -214,13 +214,12 @@ export const MODULES: GameModule[] = [
         rme: "Guidance Principle", reward: 50,
       },
       {
-        id: "m2s3", type: "mcq", slide: "Slide 3: Counter Warm-Up (NEW)",
-        banner: "FIND THE MATCHING JAR",
-        dialogue: "A customer wants 1/2 a jar of candies, but that jar is empty! Which jar holds the same amount?",
-        question: "Which fraction is equivalent to 1/2?",
-        choices: [{ frac: { n: 2, d: 4 } }, { frac: { n: 1, d: 3 } }, { frac: { n: 2, d: 5 } }, { frac: { n: 3, d: 4 } }],
-        answer: 0,
-        rme: "Guidance Principle", reward: 10,
+        id: "m2s3", type: "jar-fill", slide: "Slide 3: The Candy Jar Counter (NEW)",
+        banner: "SERVE 1/2 A JAR — HALF-JARS ARE SOLD OUT!",
+        dialogue:
+          "A customer wants 1/2 a jar of candies, but our half-size jars are sold out! Use the 🫙 divider to pick a different jar size, then fill the SAME amount.",
+        target: { n: 1, d: 2 }, forbidden: 2, customerIcon: "🧒🏽",
+        rme: "Activity Principle", reward: 20,
       },
       {
         id: "m2s4", type: "sort-bins", slide: "Slide 4: Multiples Matching",
@@ -279,13 +278,12 @@ export const MODULES: GameModule[] = [
         rme: "Level Principle", reward: 25,
       },
       {
-        id: "m2s11", type: "mcq", slide: "Slide 11: Price Tag Review (NEW)",
-        banner: "PICK THE SIMPLEST FORM",
-        dialogue: "Quality check! Which of these tags shows 10/15 in simplest form?",
-        question: "10/15 written in simplest form is…",
-        choices: [{ frac: { n: 5, d: 10 } }, { frac: { n: 2, d: 3 } }, { frac: { n: 10, d: 15 } }, { frac: { n: 3, d: 5 } }],
-        answer: 1,
-        rme: "Level Principle", reward: 15,
+        id: "m2s11", type: "jar-fill", slide: "Slide 11: The Big Peanut Order (NEW)",
+        banner: "SERVE 2/3 A JAR IN A DIFFERENT SIZE",
+        dialogue:
+          "Another customer needs 2/3 of a jar of peanuts — but the third-size jars just ran out too! Divide a new jar and fill the exact same amount.",
+        target: { n: 2, d: 3 }, forbidden: 3, customerIcon: "👵🏽",
+        rme: "Level Principle", reward: 25,
       },
       {
         id: "m2s12", type: "mcq", slide: "Slide 12: Peer Inventory Check",
@@ -394,13 +392,13 @@ export const MODULES: GameModule[] = [
         rme: "Guidance Principle", reward: 50,
       },
       {
-        id: "m3s3", type: "mcq", slide: "Slide 3: Committee Quiz (NEW)",
-        banner: "WHAT'S THE LCD?",
-        dialogue: "Quick check before we climb the bamboo poles: what is the least common denominator of thirds and fourths?",
-        question: "The LCD of 1/3 and 1/4 is…",
-        choices: [{ label: "7" }, { label: "12" }, { label: "24" }, { label: "6" }],
-        answer: 1,
-        rme: "Guidance Principle", reward: 10,
+        id: "m3s3", type: "punch-mix", slide: "Slide 3: Punch Practice (NEW)",
+        banner: "FILL THE BOWL EXACTLY TO THE 5/6 LINE",
+        dialogue:
+          "Practice round! Pour juice with the 🥄 ladles until the bowl reaches EXACTLY the 5/6 line. Careful — overflow means spilled punch!",
+        target: { n: 5, d: 6 },
+        ladles: [{ n: 1, d: 2 }, { n: 1, d: 3 }, { n: 1, d: 6 }],
+        rme: "Activity Principle", reward: 20,
       },
       {
         id: "m3s4", type: "equation", slide: "Slide 4: Ang Pagkabit ng Banderitas",
@@ -466,13 +464,13 @@ export const MODULES: GameModule[] = [
         rme: "Level Principle", reward: 35,
       },
       {
-        id: "m3s10", type: "mcq", slide: "Slide 10: Tablecloth Orders (NEW)",
-        banner: "HOW MUCH CLOTH IN TOTAL?",
-        dialogue: "The long table needs 1/2 meter of cloth and the round table needs 1/3 meter. How much cloth should we buy?",
-        question: "1/2 m + 1/3 m = ?",
-        choices: [{ frac: { n: 5, d: 6 } }, { frac: { n: 2, d: 5 } }, { frac: { n: 1, d: 6 } }, { frac: { n: 2, d: 6 } }],
-        answer: 0,
-        rme: "Level Principle", reward: 15,
+        id: "m3s10", type: "punch-mix", slide: "Slide 10: The Second Batch (NEW)",
+        banner: "MIX THE SECOND BATCH: EXACTLY 3/4",
+        dialogue:
+          "More guests are coming! Mix a second batch up to exactly the 3/4 mark. Different ladles this time — choose wisely!",
+        target: { n: 3, d: 4 },
+        ladles: [{ n: 1, d: 2 }, { n: 1, d: 4 }, { n: 1, d: 8 }],
+        rme: "Level Principle", reward: 25,
       },
       {
         id: "m3s11", type: "equation", slide: "Slide 11: The Sugar Ledger (NEW)",

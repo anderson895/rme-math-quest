@@ -4,6 +4,8 @@ import { useGame } from "../state/GameContext";
 import GameShell from "../components/GameShell";
 import DialogueScene from "../components/mechanics/DialogueScene";
 import CutShare from "../components/mechanics/CutShare";
+import JarFill from "../components/mechanics/JarFill";
+import PunchMix from "../components/mechanics/PunchMix";
 import NumberLinePlot from "../components/mechanics/NumberLinePlot";
 import ModelShade from "../components/mechanics/ModelShade";
 import MCQ from "../components/mechanics/MCQ";
@@ -16,8 +18,16 @@ import BossChallenge from "../components/mechanics/BossChallenge";
 import type { Screen } from "../types";
 import { sfxCoin } from "../sound";
 
+/* which tools each mechanic gets; the first one is the primary tool
+   (gets the guide arrow). Ruler + eraser combine with the primary. */
+const TOOLSETS: Partial<Record<Screen["type"], string[]>> = {
+  "cut-share": ["scissors", "ruler", "eraser"],
+  "jar-fill":  ["divider", "ruler", "eraser"],
+  "punch-mix": ["ladle", "ruler", "eraser"],
+};
+
 /** Runs one module: renders the current screen's mechanic inside GameShell
-    and handles progression, coins, and resume position. */
+    and handles progression, coins, tools, and resume position. */
 export default function ModulePlay({
   moduleIdx,
   onExit,
@@ -33,10 +43,31 @@ export default function ModulePlay({
   );
   const [solved, setSolved] = useState(false);
   const [resetKey, setResetKey] = useState(0);
-  const [cutterOpen, setCutterOpen] = useState(false);
+  const [activeTools, setActiveTools] = useState<string[]>([]);
+  const [eraseSignal, setEraseSignal] = useState(0);
+  const [toolUsed, setToolUsed] = useState(false);
 
   const screen = module.screens[idx];
-  const isCutShare = screen.type === "cut-share";
+  const tools = TOOLSETS[screen.type];
+
+  const clearToolState = () => {
+    setActiveTools([]);
+    setEraseSignal(0);
+    setToolUsed(false);
+  };
+
+  const handleTool = (id: string) => {
+    setToolUsed(true);
+    if (id === "eraser") {
+      // instant tool: fires an erase pulse into the mechanic
+      setEraseSignal((s) => s + 1);
+      return;
+    }
+    setActiveTools((t) => (t.includes(id) ? t.filter((x) => x !== id) : [...t, id]));
+  };
+
+  const closePanel = (id: string) =>
+    setActiveTools((t) => t.filter((x) => x !== id));
 
   const handleSolved = () => {
     if (solved) return;
@@ -59,7 +90,7 @@ export default function ModulePlay({
     setIdx(next);
     setSolved(false);
     setResetKey(0);
-    setCutterOpen(false);
+    clearToolState();
   };
 
   // dialogue screens complete via their own button and advance directly
@@ -80,12 +111,12 @@ export default function ModulePlay({
       coins={progress.coins}
       solved={solved && screen.type !== "dialogue"}
       hint={screen.type === "equation" ? screen.hint : undefined}
-      tool={isCutShare ? "scissors" : undefined}
-      toolActive={cutterOpen}
-      toolAttention={isCutShare && !cutterOpen && !solved}
-      onTool={() => setCutterOpen((o) => !o)}
+      tools={tools}
+      activeTools={activeTools}
+      toolAttention={!!tools && !toolUsed && !solved}
+      onTool={handleTool}
       onHome={onExit}
-      onReset={() => { setSolved(false); setResetKey((k) => k + 1); setCutterOpen(false); }}
+      onReset={() => { setSolved(false); setResetKey((k) => k + 1); clearToolState(); }}
       onNext={advance}
     >
       <Mechanic
@@ -93,8 +124,9 @@ export default function ModulePlay({
         screen={screen}
         onSolved={handleSolved}
         onDialogueDone={dialogueDone}
-        cutterOpen={cutterOpen}
-        closeCutter={() => setCutterOpen(false)}
+        activeTools={activeTools}
+        closePanel={closePanel}
+        eraseSignal={eraseSignal}
       />
     </GameShell>
   );
@@ -104,18 +136,23 @@ function Mechanic({
   screen,
   onSolved,
   onDialogueDone,
-  cutterOpen,
-  closeCutter,
+  activeTools,
+  closePanel,
+  eraseSignal,
 }: {
   screen: Screen;
   onSolved: (perfect: boolean) => void;
   onDialogueDone: () => void;
-  cutterOpen: boolean;
-  closeCutter: () => void;
+  activeTools: string[];
+  closePanel: (id: string) => void;
+  eraseSignal: number;
 }) {
+  const toolProps = { activeTools, closePanel, eraseSignal };
   switch (screen.type) {
     case "dialogue":    return <DialogueScene screen={screen} onDone={onDialogueDone} />;
-    case "cut-share":   return <CutShare screen={screen} cutterOpen={cutterOpen} closeCutter={closeCutter} onSolved={onSolved} />;
+    case "cut-share":   return <CutShare screen={screen} onSolved={onSolved} {...toolProps} />;
+    case "jar-fill":    return <JarFill screen={screen} onSolved={onSolved} {...toolProps} />;
+    case "punch-mix":   return <PunchMix screen={screen} onSolved={onSolved} {...toolProps} />;
     case "numberline":  return <NumberLinePlot screen={screen} onSolved={onSolved} />;
     case "model-shade": return <ModelShade screen={screen} onSolved={onSolved} />;
     case "mcq":         return <MCQ screen={screen} onSolved={onSolved} />;

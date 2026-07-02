@@ -49,6 +49,26 @@ export interface CutShareScreen extends BaseScreen {
   itemLabel: string;   // what is being cut, e.g. "wooden plank"
 }
 
+export interface BridgeBuildScreen extends BaseScreen {
+  type: "bridge-build";
+  den: number;       // ruler divisions across the bridge (0 to 1)
+  gapNum: number;    // missing parts — the gap is gapNum/den wide
+  walker: string;    // character waiting to cross (temporary emoji)
+}
+
+export interface JarFillScreen extends BaseScreen {
+  type: "jar-fill";
+  target: Frac;         // amount the customer ordered
+  forbidden?: number;   // jar size that is "sold out" — forces an equivalent form
+  customerIcon: string; // temporary emoji
+}
+
+export interface PunchMixScreen extends BaseScreen {
+  type: "punch-mix";
+  target: Frac;         // exact level the bowl must reach
+  ladles: Frac[];       // ladle sizes available on the rack
+}
+
 export interface ModelShadeScreen extends BaseScreen {
   type: "model-shade";
   frac: Frac;             // fraction to represent
@@ -116,6 +136,9 @@ export type Screen =
   | DialogueScreen
   | NumberLineScreen
   | CutShareScreen
+  | BridgeBuildScreen
+  | JarFillScreen
+  | PunchMixScreen
   | ModelShadeScreen
   | MCQScreen
   | OrderScreen

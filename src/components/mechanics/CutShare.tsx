@@ -1,51 +1,67 @@
 /* ============================================================
-   CutShare — the scissors-tool mechanic:
-   1. A whole item (labeled "1") + friends waiting below.
-   2. Player taps the ✂️ tool (bottom-right of the shell) which
-      opens a cutting machine with a slider (2–8 equal parts).
-   3. Cutting into the right number of parts lets the player
-      hand one piece (1/n) to each friend. Wrong cuts get a
-      hint and can be re-cut with the tool.
+   CutShare — Module 1's ✂️ scissors mechanic, with tool combos:
+   • ✂️ scissors  — opens the cutting machine (slider 2–8 parts)
+   • 📏 ruler     — measures pieces: shows "1/n" labels; without
+                    it pieces show "?" (measure to be sure!)
+   • 🧽 eraser    — un-cuts: the plank becomes whole again
+   • COMBO ✂️+📏 — the machine preview shows measured part sizes
    ============================================================ */
 
 import { Box, Button, Paper, Slider, Typography } from "@mui/material";
 import ContentCutRoundedIcon from "@mui/icons-material/ContentCutRounded";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CutShareScreen } from "../../types";
 import { sfxClick, sfxCorrect, sfxWrong } from "../../sound";
 
 interface Props {
   screen: CutShareScreen;
-  cutterOpen: boolean;
-  closeCutter: () => void;
+  activeTools: string[];
+  closePanel: (id: string) => void;
+  eraseSignal: number;
   onSolved: (perfect: boolean) => void;
 }
 
-export default function CutShare({ screen, cutterOpen, closeCutter, onSolved }: Props) {
+export default function CutShare({ screen, activeTools, closePanel, eraseSignal, onSolved }: Props) {
   const [pieces, setPieces] = useState(0);       // 0 = still whole
   const [given, setGiven] = useState(0);         // pieces already handed out
   const [sliderVal, setSliderVal] = useState(2);
   const [misses, setMisses] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
 
+  const machineOpen = activeTools.includes("scissors") && !done;
+  const ruler = activeTools.includes("ruler");
   const correctCut = pieces === screen.eaters;
-  const done = correctCut && given === screen.eaters;
+
+  /* 🧽 eraser pulse: restore the whole plank */
+  useEffect(() => {
+    if (eraseSignal === 0 || done) return;
+    sfxClick();
+    setPieces(0);
+    setGiven(0);
+    setFeedback("🧽 All clean! The plank is whole again — cut it with the ✂️ tool.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eraseSignal]);
 
   const cut = () => {
     sfxClick();
     setPieces(sliderVal);
     setGiven(0);
     if (sliderVal === screen.eaters) {
-      setFeedback(`✂️ Perfect cutting! Each piece is 1/${sliderVal}. Now tap a piece to give it to a friend.`);
+      setFeedback(
+        ruler
+          ? `✂️ Perfect cutting! The 📏 ruler says each piece is 1/${sliderVal}. Tap a piece to give it to a friend.`
+          : `✂️ Nice cutting! Tap a piece to give it to a friend — use the 📏 ruler to check each piece's size!`
+      );
     } else {
       sfxWrong();
       setMisses((m) => m + 1);
       setFeedback(
         `Hmm… ${sliderVal} ${sliderVal === 1 ? "piece" : "pieces"} for ${screen.eaters} friends is not a fair share. ` +
-        `Tap the ✂️ tool and cut again!`
+        `Use the 🧽 eraser or cut again with ✂️!`
       );
     }
-    closeCutter();
+    closePanel("scissors");
   };
 
   const give = () => {
@@ -57,6 +73,7 @@ export default function CutShare({ screen, cutterOpen, closeCutter, onSolved }: 
     setGiven(g);
     if (g === screen.eaters) {
       sfxCorrect();
+      setDone(true);
       setFeedback(`🎉 Everyone got exactly 1/${screen.eaters} of the ${screen.itemLabel}!`);
       onSolved(misses === 0);
     } else {
@@ -70,33 +87,69 @@ export default function CutShare({ screen, cutterOpen, closeCutter, onSolved }: 
         🪚 {screen.eaters} friends need <strong>equal shares</strong> of one {screen.itemLabel}.
       </Typography>
 
-      {/* the item: whole, or cut into pieces */}
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 0.7, mb: 2, minHeight: 64 }}>
+      {/* the item: whole, or cut into pieces.
+          📏 ruler ON = pieces JOIN together (gap closes) for measuring */}
+      <Box sx={{ display: "flex", justifyContent: "center", gap: ruler ? 0 : 0.7, mb: 0.5, minHeight: 64, transition: "gap .4s" }}>
         {pieces === 0 ? (
           <Box sx={{ ...plank, width: "min(440px, 80vw)" }}>1</Box>
         ) : (
-          Array.from({ length: pieces - given }, (_, i) => (
-            <Box
-              key={i}
-              onClick={give}
-              sx={{
-                ...plank,
-                width: `min(${440 / pieces}px, ${80 / pieces}vw)`,
-                fontSize: 18,
-                cursor: correctCut ? "pointer" : "not-allowed",
-                opacity: correctCut ? 1 : 0.65,
-                "&:hover": correctCut ? { transform: "translateY(-6px)", filter: "brightness(1.15)" } : {},
-                transition: "transform .15s, filter .15s",
-              }}
-            >
-              <span>1&frasl;{pieces}</span>
-            </Box>
-          ))
+          Array.from({ length: pieces }, (_, i) => {
+            const gone = i < given; // already handed to a friend
+            return (
+              <Box
+                key={i}
+                onClick={gone ? undefined : give}
+                sx={{
+                  ...plank,
+                  width: `min(${440 / pieces}px, ${80 / pieces}vw)`,
+                  fontSize: 17,
+                  cursor: correctCut && !gone ? "pointer" : "not-allowed",
+                  opacity: correctCut ? 1 : 0.65,
+                  pointerEvents: gone ? "none" : "auto",
+                  // pieces FALL from the cutting machine (staggered),
+                  // then fall down into a friend's hands when given
+                  animation: gone
+                    ? "flyGive .5s ease-in forwards"
+                    : "dropIn .55s cubic-bezier(.3, 1.4, .5, 1) both",
+                  animationDelay: gone ? "0s" : `${i * 0.09}s`,
+                  "&:hover": correctCut && !gone ? { filter: "brightness(1.15)" } : {},
+                }}
+              >
+                {/* 📏 ruler measures the pieces; without it, size is unknown */}
+                <span>{ruler ? <>1&frasl;{pieces}</> : "?"}</span>
+              </Box>
+            );
+          })
         )}
       </Box>
 
+      {/* 📏 ruler strip: appears under the joined pieces with tick marks,
+          showing that the parts connect back into 1 whole */}
+      {ruler && (
+        <Box sx={{ width: "min(440px, 80vw)", mx: "auto", mb: 1.5, animation: "popIn .3s" }}>
+          <Box sx={{ position: "relative", height: 30, bgcolor: "#ffe082", border: "2px solid #f9a825", borderRadius: 1 }}>
+            {Array.from({ length: Math.max(pieces, 1) + 1 }, (_, i) => {
+              const total = Math.max(pieces, 1);
+              return (
+                <Box key={i} sx={{ position: "absolute", left: `${(i / total) * 100}%`, top: 2, transform: "translateX(-50%)", textAlign: "center" }}>
+                  <Box sx={{ width: 2.5, height: 10, bgcolor: "#5d4037", mx: "auto" }} />
+                  <Typography sx={{ fontSize: 10.5, fontWeight: 800, color: "#5d4037", lineHeight: 1.1 }}>
+                    {i === 0 ? "0" : i === total ? "1" : `${i}/${total}`}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+          {pieces > 0 && (
+            <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: "#00838f", mt: 0.3 }}>
+              📏 Joined together: {pieces} × 1/{pieces} = 1 whole
+            </Typography>
+          )}
+        </Box>
+      )}
+
       {/* the friends */}
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 3, flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", gap: 3, flexWrap: "wrap", mt: ruler ? 0 : 1.5 }}>
         {Array.from({ length: screen.eaters }, (_, i) => {
           const fed = i < given;
           return (
@@ -109,7 +162,7 @@ export default function CutShare({ screen, cutterOpen, closeCutter, onSolved }: 
                 {screen.eaterIcon}
               </Typography>
               {fed ? (
-                <Box sx={{ ...plank, width: 58, height: 30, fontSize: 14, mx: "auto" }}>
+                <Box sx={{ ...plank, width: 58, height: 30, fontSize: 14, mx: "auto", animation: "dropIn .45s cubic-bezier(.3, 1.4, .5, 1) both" }}>
                   <span>1&frasl;{pieces}</span>
                 </Box>
               ) : (
@@ -125,14 +178,14 @@ export default function CutShare({ screen, cutterOpen, closeCutter, onSolved }: 
           {feedback}
         </Typography>
       )}
-      {pieces === 0 && !cutterOpen && (
+      {pieces === 0 && !machineOpen && !feedback && (
         <Typography sx={{ mt: 1.5, fontWeight: 700, fontSize: 14, color: "#5d4037" }}>
           👉 Tap the ✂️ cutting tool at the lower right to begin!
         </Typography>
       )}
 
       {/* cutting machine (opened by the shell's scissors tool) */}
-      {cutterOpen && !done && (
+      {machineOpen && (
         <Paper
           elevation={8}
           sx={{
@@ -144,12 +197,22 @@ export default function CutShare({ screen, cutterOpen, closeCutter, onSolved }: 
           <Typography sx={{ fontWeight: 900, mb: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
             <ContentCutRoundedIcon fontSize="small" /> CUTTING MACHINE
           </Typography>
-          {/* preview of the plank inside the machine */}
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 0.4, mb: 1.5 }}>
+          {/* preview of the plank; COMBO with 📏 ruler = measured sizes */}
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 0.4, mb: 0.7 }}>
             {Array.from({ length: sliderVal }, (_, i) => (
-              <Box key={i} sx={{ ...plank, height: 26, width: `${200 / sliderVal}px`, fontSize: 0, borderWidth: 2 }} />
+              <Box key={i} sx={{
+                ...plank, height: 26, width: `${200 / sliderVal}px`,
+                fontSize: ruler ? 10 : 0, borderWidth: 2,
+              }}>
+                {ruler && <span>1&frasl;{sliderVal}</span>}
+              </Box>
             ))}
           </Box>
+          {ruler && (
+            <Typography sx={{ fontSize: 11.5, mb: 0.7, color: "#ffe082", fontWeight: 700 }}>
+              📏 Ruler attached — showing measured piece sizes!
+            </Typography>
+          )}
           <Typography sx={{ fontWeight: 800, fontSize: 24 }}>{sliderVal}</Typography>
           <Typography sx={{ fontSize: 12, mb: 1, opacity: 0.85 }}>equal parts</Typography>
           <Slider
@@ -164,7 +227,7 @@ export default function CutShare({ screen, cutterOpen, closeCutter, onSolved }: 
             }}
           />
           <Box sx={{ display: "flex", gap: 1, justifyContent: "center", mt: 1 }}>
-            <Button variant="outlined" onClick={() => { sfxClick(); closeCutter(); }}
+            <Button variant="outlined" onClick={() => { sfxClick(); closePanel("scissors"); }}
               sx={{ color: "#fff", borderColor: "#ffffff88", borderRadius: 3, fontWeight: 800 }}>
               Close
             </Button>

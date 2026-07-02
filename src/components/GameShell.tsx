@@ -21,14 +21,29 @@ import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import LightbulbRoundedIcon from "@mui/icons-material/LightbulbRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import ContentCutRoundedIcon from "@mui/icons-material/ContentCutRounded";
+import ViewAgendaRoundedIcon from "@mui/icons-material/ViewAgendaRounded";
+import SoupKitchenRoundedIcon from "@mui/icons-material/SoupKitchenRounded";
+import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
+import CleaningServicesRoundedIcon from "@mui/icons-material/CleaningServicesRounded";
 import PaidRoundedIcon from "@mui/icons-material/PaidRounded";
 import type { GameModule, Screen } from "../types";
 import { setMusic, setMuted, sfxClick } from "../sound";
 import { useGame } from "../state/GameContext";
 
+/* level tools: each has its own function; ruler/eraser combine with the rest */
+const TOOL_DEFS: Record<string, { icon: ReactNode; label: string; color: string }> = {
+  scissors: { icon: <ContentCutRoundedIcon />,       label: "Cutting tool — cut into equal parts", color: "#c2185b" },
+  divider:  { icon: <ViewAgendaRoundedIcon />,       label: "Jar divider — choose jar sections",   color: "#c2185b" },
+  ladle:    { icon: <SoupKitchenRoundedIcon />,      label: "Ladle rack — pour fractions",         color: "#c2185b" },
+  ruler:    { icon: <StraightenRoundedIcon />,       label: "Ruler — measure the fractions",       color: "#00838f" },
+  eraser:   { icon: <CleaningServicesRoundedIcon />, label: "Eraser — clear your work",            color: "#6d4c41" },
+};
+
 /* step-by-step guide per mechanic, shown with arrows under the banner */
 const STEP_GUIDES: Partial<Record<Screen["type"], string[]>> = {
-  "cut-share":   ["Tap the ✂️ tool", "Choose equal parts, then Cut", "Give each friend a piece"],
+  "cut-share":   ["Tap the ✂️ tool & cut equal parts", "📏 Ruler measures pieces", "Give each friend a piece"],
+  "jar-fill":    ["Tap the 🫙 divider & pick a size", "Tap sections to fill candy", "Serve the customer"],
+  "punch-mix":   ["Tap the 🥄 ladle rack", "Pour exactly to the line", "📏 Ruler shows the level"],
   numberline:    ["Tap a road sign", "Tap its spot on the road", "Place all signs"],
   "model-shade": ["Tap beds to shade", "Count the shaded parts", "Press Check"],
   mcq:           ["Read the question", "Tap the best answer"],
@@ -48,12 +63,13 @@ interface Props {
   coins: number;
   solved: boolean;
   hint?: string;
-  /* optional level tool (e.g. the ✂️ cutting tool), reference-style:
-     pink button at the lower right with a bouncing guide arrow */
-  tool?: "scissors";
-  toolActive?: boolean;
+  /* level tools (reference-style buttons at the lower right); each has
+     its own function and some combine — e.g. 📏 ruler + ✂️ scissors
+     shows measured piece sizes inside the cutting machine */
+  tools?: string[];
+  activeTools?: string[];
   toolAttention?: boolean;
-  onTool?: () => void;
+  onTool?: (id: string) => void;
   onHome: () => void;
   onReset: () => void;
   onNext: () => void;
@@ -207,27 +223,41 @@ export default function GameShell(p: Props) {
         </Tooltip>
       </Box>
 
-      {/* bottom-right: Tool + Hint + Reset (matches reference position) */}
+      {/* bottom-right: Tools + Hint + Reset (matches reference position) */}
       <Box sx={{ position: "absolute", right: 14, bottom: 12, display: "flex", gap: 1, zIndex: 5 }}>
-        {p.tool === "scissors" && (
-          <Box sx={{ position: "relative" }}>
-            {/* bouncing guide arrow pointing at the tool */}
-            {p.toolAttention && (
-              <Box className="map-bounce" sx={{ position: "absolute", top: -44, left: "50%", ml: "-13px", pointerEvents: "none" }}>
-                <svg width="26" height="36" viewBox="0 0 26 36">
-                  <polygon points="7,0 19,0 19,16 26,16 13,34 0,16 7,16"
-                    fill="#ff9800" stroke="#e65100" strokeWidth="2" strokeLinejoin="round" />
-                </svg>
-              </Box>
-            )}
-            <Tooltip title="Cutting tool">
-              <IconButton onClick={() => { sfxClick(); p.onTool?.(); }}
-                sx={cornerBtn(p.toolActive ? "#880e4f" : "#c2185b")}>
-                <ContentCutRoundedIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        )}
+        {p.tools?.map((id, i) => {
+          const def = TOOL_DEFS[id];
+          if (!def) return null;
+          const active = p.activeTools?.includes(id);
+          return (
+            <Box key={id} sx={{ position: "relative" }}>
+              {/* bouncing guide arrow over the primary tool */}
+              {i === 0 && p.toolAttention && (
+                <Box className="map-bounce" sx={{ position: "absolute", top: -44, left: "50%", ml: "-13px", pointerEvents: "none", zIndex: 7 }}>
+                  <svg width="26" height="36" viewBox="0 0 26 36">
+                    <polygon points="7,0 19,0 19,16 26,16 13,34 0,16 7,16"
+                      fill="#ff9800" stroke="#e65100" strokeWidth="2" strokeLinejoin="round" />
+                  </svg>
+                </Box>
+              )}
+              <Tooltip title={def.label}>
+                <IconButton
+                  onClick={() => { sfxClick(); p.onTool?.(id); }}
+                  sx={{
+                    ...cornerBtn(def.color),
+                    ...(active && {
+                      filter: "brightness(0.8)",
+                      boxShadow: "0 0 0 3px #ffeb3b",
+                      transform: "scale(0.94)",
+                    }),
+                  }}
+                >
+                  {def.icon}
+                </IconButton>
+              </Tooltip>
+            </Box>
+          );
+        })}
         {p.hint && (
           <Tooltip title="Hint">
             <IconButton onClick={() => { sfxClick(); setShowHint(!showHint); }} sx={cornerBtn("#c2185b")}>

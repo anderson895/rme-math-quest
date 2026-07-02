@@ -18,7 +18,6 @@ import {
 import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
 import MusicOffRoundedIcon from "@mui/icons-material/MusicOffRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
-import PaidRoundedIcon from "@mui/icons-material/PaidRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import { MODULES } from "../data/modules";
 import { useGame } from "../state/GameContext";
@@ -55,86 +54,19 @@ const TRAIL_START_F = 0.02;
 
 const PLACE_NAMES = ["Bukid ni Tatay Ben", "Tindahan ni Ate Lalay", "Plaza ng Barangay"];
 
+/* building/prop rendered right BESIDE its station (offsets are relative
+   to the station node, so they always stay together) */
+const STATION_DECOR = [
+  { href: "/icons/game/palay.png",           x: 50,   y: -46, w: 56,  h: 72 },
+  { href: "/icons/game/sari-sari-store.png", x: 44,   y: -106, w: 98, h: 110 },
+  { href: "/icons/game/festival-stall.png",  x: -170, y: -90, w: 118, h: 94 },
+];
+
 /* ============================================================
    Original flat-style SVG buildings (own artwork — no external
    assets needed). Swap for downloaded icons later by dropping
    files in public/icons/ and editing these components.
    ============================================================ */
-function HouseSvg({ x, y, s = 1, wall = "#f5e6c8", roof = "#b3564d" }: { x: number; y: number; s?: number; wall?: string; roof?: string }) {
-  return (
-    <g transform={`translate(${x}, ${y}) scale(${s})`}>
-      <rect x="-28" y="-22" width="56" height="34" fill={wall} stroke="#00000026" strokeWidth="1.5" />
-      <polygon points="-34,-22 0,-48 34,-22" fill={roof} stroke="#00000026" strokeWidth="1.5" />
-      <rect x="-7" y="-5" width="14" height="17" rx="2" fill="#7b4a2d" />
-      <rect x="-23" y="-14" width="12" height="10" fill="#a5d8f3" stroke="#546e7a" strokeWidth="1.5" />
-      <rect x="11" y="-14" width="12" height="10" fill="#a5d8f3" stroke="#546e7a" strokeWidth="1.5" />
-    </g>
-  );
-}
-
-function SchoolSvg({ x, y }: { x: number; y: number }) {
-  return (
-    <g transform={`translate(${x}, ${y})`}>
-      <rect x="-46" y="-26" width="92" height="40" fill="#fde3a7" stroke="#00000026" strokeWidth="1.5" />
-      <polygon points="-52,-26 0,-50 52,-26" fill="#8d6e63" />
-      <rect x="-3" y="-62" width="4" height="16" fill="#6d4c41" />
-      <polygon points="1,-62 18,-57 1,-52" fill="#e53935" />
-      {[-34, -12, 14].map((wx) => (
-        <rect key={wx} x={wx} y="-16" width="13" height="11" fill="#a5d8f3" stroke="#546e7a" strokeWidth="1.5" />
-      ))}
-      <rect x="-8" y="-4" width="16" height="18" rx="2" fill="#6d4c41" />
-    </g>
-  );
-}
-
-function ChurchSvg({ x, y }: { x: number; y: number }) {
-  return (
-    <g transform={`translate(${x}, ${y})`}>
-      <rect x="-24" y="-24" width="48" height="38" fill="#f0f0e4" stroke="#00000026" strokeWidth="1.5" />
-      <polygon points="-30,-24 0,-52 30,-24" fill="#a1887f" />
-      <rect x="-2.5" y="-70" width="5" height="14" fill="#6d4c41" />
-      <rect x="-8" y="-64" width="16" height="4" fill="#6d4c41" />
-      <rect x="-7" y="-6" width="14" height="20" rx="7" fill="#7b4a2d" />
-      <circle cx="0" cy="-34" r="6" fill="#fff3c4" stroke="#8d6e63" strokeWidth="1.5" />
-    </g>
-  );
-}
-
-function HallSvg({ x, y }: { x: number; y: number }) {
-  return (
-    <g transform={`translate(${x}, ${y})`}>
-      <rect x="-40" y="-22" width="80" height="34" fill="#e8eaf6" stroke="#00000026" strokeWidth="1.5" />
-      <polygon points="-46,-22 0,-44 46,-22" fill="#5c6bc0" />
-      {[-30, -12, 8, 24].map((cx) => (
-        <rect key={cx} x={cx} y="-16" width="7" height="28" fill="#c5cae9" stroke="#7986cb" strokeWidth="1" />
-      ))}
-    </g>
-  );
-}
-
-function TreeSvg({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
-  return (
-    <g transform={`translate(${x}, ${y}) scale(${s})`}>
-      <rect x="-3" y="-6" width="6" height="16" fill="#8d6e63" rx="2" />
-      <circle cx="0" cy="-16" r="15" fill="#66bb6a" />
-      <circle cx="-9" cy="-9" r="10" fill="#81c784" />
-      <circle cx="9" cy="-9" r="10" fill="#4caf50" />
-    </g>
-  );
-}
-
-function PalmSvg({ x, y }: { x: number; y: number }) {
-  return (
-    <g transform={`translate(${x}, ${y})`}>
-      <rect x="-3" y="-24" width="6" height="34" fill="#a1774f" rx="3" />
-      {[-40, -15, 15, 40].map((deg) => (
-        <ellipse key={deg} cx="0" cy="-28" rx="17" ry="6" fill="#43a047"
-          transform={`rotate(${deg}, 0, -26)`} />
-      ))}
-    </g>
-  );
-}
-
 function CarSvg({ x, y, color = "#e53935", flip = false }: { x: number; y: number; color?: string; flip?: boolean }) {
   return (
     <g transform={`translate(${x}, ${y})${flip ? " scale(-1,1)" : ""}`}>
@@ -246,7 +178,7 @@ export default function MainMenu({
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "center" }}>
         <Chip label={progress.name ? `${progress.avatar} ${progress.name}` : "👤 New resident — visit the farm first!"}
           size="small" sx={{ bgcolor: "#fff", fontWeight: 800 }} />
-        <Chip icon={<PaidRoundedIcon sx={{ color: "#f9a825 !important" }} />} label={`${progress.coins} coins`}
+        <Chip icon={<img src="/icons/game/coin.png" width={18} height={18} alt="coins" />} label={`${progress.coins} coins`}
           size="small" sx={{ bgcolor: "#fff", fontWeight: 800 }} />
         <Chip label={`🏅 ${Object.values(progress.completed).filter(Boolean).length}/${MODULES.length} modules`}
           size="small" sx={{ bgcolor: "#fff", fontWeight: 800 }} />
@@ -283,24 +215,23 @@ export default function MainMenu({
           <rect x="452" y="330" width="52" height="248" fill="#455a64" rx="6" />
           <line x1="478" y1="345" x2="478" y2="570" stroke="#eceff1" strokeWidth="3" strokeDasharray="14 12" />
 
-          {/* community buildings & greenery (original flat SVG art) */}
-          <HouseSvg x={140} y={120} />
-          <HouseSvg x={250} y={95} roof="#8d6e63" wall="#fbe9e7" />
-          <HallSvg x={610} y={82} />
-          <SchoolSvg x={845} y={118} />
-          <ChurchSvg x={85} y={305} />
-          <HouseSvg x={905} y={288} s={0.9} roof="#6d4c41" />
-          <HouseSvg x={140} y={492} roof="#7cb342" wall="#fffde7" />
-          <HouseSvg x={865} y={522} s={0.9} wall="#ffe0b2" />
-          <HouseSvg x={560} y={562} s={0.8} roof="#5d4037" />
-          <TreeSvg x={60} y={185} />
-          <TreeSvg x={935} y={195} s={0.9} />
-          <TreeSvg x={420} y={95} s={0.8} />
-          <TreeSvg x={300} y={555} s={0.9} />
-          <TreeSvg x={940} y={430} s={0.85} />
-          <PalmSvg x={700} y={95} />
-          <PalmSvg x={62} y={430} />
-          <PalmSvg x={702} y={556} />
+          {/* barangay decorations — all sprites from the asset packs */}
+          <image href="/icons/game/banderitas.png" x={250} y={26} width={500} height={58} preserveAspectRatio="none" />
+          <image href="/icons/game/bahay-kubo.png" x={82} y={58} width={118} height={108} />
+          <image href="/icons/game/church.png" x={34} y={228} width={106} height={142} />
+          <image href="/icons/game/stage.png" x={588} y={486} width={142} height={96} />
+          <image href="/icons/game/flower-box.png" x={232} y={62} width={72} height={44} />
+          <image href="/icons/game/plants.png" x={118} y={452} width={72} height={48} />
+          <image href="/icons/game/parol.png" x={62} y={392} width={40} height={70} />
+          <image href="/icons/game/tree.png" x={30} y={112} width={56} height={78} />
+          <image href="/icons/game/tree.png" x={905} y={128} width={52} height={72} />
+          <image href="/icons/game/tree.png" x={398} y={40} width={50} height={70} />
+          <image href="/icons/game/tree.png" x={276} y={492} width={54} height={75} />
+          <image href="/icons/game/tree.png" x={912} y={368} width={52} height={72} />
+          <image href="/icons/game/tree.png" x={846} y={76} width={52} height={72} />
+          <image href="/icons/game/tree.png" x={688} y={498} width={52} height={72} />
+          {/* end-of-road flag */}
+          <image href="/icons/game/road-flag.png" x={886} y={296} width={44} height={58} />
           {/* vehicles on the road */}
           <CarSvg x={592} y={247} color="#ef6c00" />
           <BusSvg x={372} y={412} />
@@ -322,6 +253,13 @@ export default function MainMenu({
                 className={shakeIdx === i ? "map-shake" : undefined}
               >
                 <title>{`${PLACE_NAMES[i]}\nModule ${i + 1}: ${m.title}`}</title>
+                {/* the station's own building/prop, anchored beside it */}
+                <image
+                  href={STATION_DECOR[i].href}
+                  x={STATION_DECOR[i].x} y={STATION_DECOR[i].y}
+                  width={STATION_DECOR[i].w} height={STATION_DECOR[i].h}
+                  opacity={locked ? 0.55 : 1}
+                />
                 {locked ? (
                   <>
                     <circle r="36" fill="#cfcfcf" stroke="#8d8d8d" strokeWidth="5" />
@@ -377,9 +315,8 @@ export default function MainMenu({
         </svg>
       </Box>
 
-      {/* icon attribution (required by OpenMoji's CC BY-SA 4.0 license) */}
       <Typography sx={{ fontSize: 11, color: "#33691e", opacity: 0.85 }}>
-        Character icons: OpenMoji.org — CC BY-SA 4.0
+        Game art: original asset packs (Barangay Masagana Math Quest)
       </Typography>
 
       {/* bottom-left: music */}

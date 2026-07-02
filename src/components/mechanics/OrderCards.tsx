@@ -15,6 +15,7 @@ import type { OrderScreen, Frac } from "../../types";
 import { shuffle, value } from "../../utils/frac";
 import FractionText from "../FractionText";
 import MiniBar from "../MiniBar";
+import GameIcon from "../GameIcon";
 import { sfxClick, sfxCorrect, sfxWrong } from "../../sound";
 
 export default function OrderCards({
@@ -103,7 +104,7 @@ export default function OrderCards({
                 "&:hover": { transform: "translateY(-6px)" },
               }}
             >
-              <Typography sx={{ fontSize: 22, lineHeight: 1 }}>🌾</Typography>
+              <GameIcon icon="🌾" size={26} />
               <FractionText frac={f} size={17} />
               <Box sx={{ mt: 0.4 }}>
                 <MiniBar shaded={f.n} parts={f.d} width={70} height={12} color="#8bc34a" />
@@ -124,7 +125,9 @@ export default function OrderCards({
         animation: done ? "cartAway 2.6s ease-in 0.4s forwards" : "none",
       }}>
         <Box sx={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 0.5 }}>
-          <Typography sx={{ fontSize: 44, transform: "scaleX(-1)", filter: "drop-shadow(0 3px 3px #0004)" }}>🐃</Typography>
+          <Box sx={{ transform: "scaleX(-1)", filter: "drop-shadow(0 3px 3px #0004)", alignSelf: "flex-end" }}>
+            <GameIcon icon="🐃" size={72} />
+          </Box>
           {/* cart bed with slots */}
           <Box>
             <Box sx={{ display: "flex", gap: 0.6, px: 1, pt: 0.8, pb: 0.4, bgcolor: "#8d5a3b", border: "3px solid #5d4037", borderRadius: "6px 6px 2px 2px" }}>
@@ -144,7 +147,7 @@ export default function OrderCards({
                 >
                   {s ? (
                     <>
-                      <Typography sx={{ fontSize: 16, lineHeight: 1 }}>🌾</Typography>
+                      <GameIcon icon="🌾" size={18} />
                       <FractionText frac={s} size={14} />
                       <MiniBar shaded={s.n} parts={s.d} width={56} height={9} color="#8bc34a" />
                     </>
@@ -155,9 +158,13 @@ export default function OrderCards({
               ))}
             </Box>
             {/* wheels */}
-            <Box sx={{ display: "flex", justifyContent: "space-around", mt: -0.5 }}>
-              <Typography sx={{ fontSize: 22 }}>🛞</Typography>
-              <Typography sx={{ fontSize: 22 }}>🛞</Typography>
+            <Box sx={{ display: "flex", justifyContent: "space-around", mt: -0.3 }}>
+              {[0, 1].map((i) => (
+                <Box key={i} sx={{
+                  width: 22, height: 22, borderRadius: "50%",
+                  bgcolor: "#4e342e", border: "4px solid #37474f",
+                }} />
+              ))}
             </Box>
           </Box>
         </Box>

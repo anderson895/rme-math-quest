@@ -162,7 +162,8 @@ export interface GameModule {
   subtitle: string;
   npc: NPC;
   competencies: string[];
-  scenery: string;        // bottom decorative row (emoji placeholders)
+  scenery: string;        // bottom decorative row (emoji fallback)
+  sceneryImgs?: string[]; // image sprites for the bottom row (from asset packs)
   themeColor: string;
   screens: Screen[];      // exactly 15 per the revised storyboard
 }

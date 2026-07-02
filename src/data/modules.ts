@@ -26,6 +26,12 @@ export const MODULES: GameModule[] = [
       "Order dissimilar fractions",
     ],
     scenery: "🌾🐃🌽🛖🌾🐓🌾",
+    sceneryImgs: [
+      "/icons/game/palay.png",
+      "/icons/game/cart.png",
+      "/icons/game/tree.png",
+      "/icons/game/festival-stall.png",
+    ],
     themeColor: "#689f38",
     screens: [
       {
@@ -48,8 +54,8 @@ export const MODULES: GameModule[] = [
         id: "m1s3", type: "cut-share", slide: "Slide 3: Share the Timber (NEW)",
         banner: "GIVE EACH OWL AN EQUAL SHARE",
         dialogue:
-          "Two carpenter owls will repair the footbridge. Use the ✂️ cutting tool so each owl gets an equal piece of this plank!",
-        eaters: 2, eaterIcon: "🦉", itemLabel: "wooden plank",
+          "Two carpenters will repair the footbridge. Use the ✂️ cutting tool so each carpenter gets an equal piece of this plank!",
+        eaters: 2, eaterIcon: "👷🏽", itemLabel: "wooden plank",
         rme: "Activity Principle", reward: 15,
       },
       {
@@ -94,8 +100,8 @@ export const MODULES: GameModule[] = [
         id: "m1s9", type: "cut-share", slide: "Slide 9: Merienda Time (NEW)",
         banner: "SHARE THE BIBINGKA FAIRLY",
         dialogue:
-          "Merienda break! Four hardworking squirrels helped carry the tools. Cut the bibingka so everyone gets a fair share — no crumbs of argument!",
-        eaters: 4, eaterIcon: "🐿️", itemLabel: "bibingka rice cake",
+          "Merienda break! Four hardworking kids helped carry the tools. Cut the bibingka so everyone gets a fair share — no crumbs of argument!",
+        eaters: 4, eaterIcon: "🧒🏽", itemLabel: "bibingka rice cake",
         rme: "Level Principle", reward: 20,
       },
       {
@@ -116,8 +122,8 @@ export const MODULES: GameModule[] = [
         id: "m1s12", type: "bridge-build", slide: "Slide 12: The Broken Bridge (NEW)",
         banner: "REPAIR THE BRIDGE — MEASURE, CUT, GLUE!",
         dialogue:
-          "The bunny can't cross to the market! 📏 Measure the gap with the ruler, ✂️ cut the plank so the pieces fit, then 🧴 glue them in place.",
-        den: 5, gapNum: 2, walker: "🐇",
+          "Bunso can't cross to the market! 📏 Measure the gap with the ruler, ✂️ cut the plank so the pieces fit, then 🧴 glue them in place.",
+        den: 5, gapNum: 2, walker: "👦🏽",
         rme: "Interactivity Principle", reward: 30,
       },
       {
@@ -189,6 +195,13 @@ export const MODULES: GameModule[] = [
       "Reduce fractions into simplest form",
     ],
     scenery: "🏪🍬⚖️🧃🍪🧺🍭",
+    sceneryImgs: [
+      "/icons/game/sardinas.png",
+      "/icons/game/milo.png",
+      "/icons/game/scale.png",
+      "/icons/game/coke.png",
+      "/icons/game/basket.png",
+    ],
     themeColor: "#f57c00",
     screens: [
       {
@@ -367,6 +380,12 @@ export const MODULES: GameModule[] = [
       "Solve multi-step word problems",
     ],
     scenery: "🎪🎏🥤🎊🍚🎶🏮",
+    sceneryImgs: [
+      "/icons/game/parol.png",
+      "/icons/game/balloons.png",
+      "/icons/game/plants.png",
+      "/icons/game/signpost.png",
+    ],
     themeColor: "#7b1fa2",
     screens: [
       {

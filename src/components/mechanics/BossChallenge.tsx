@@ -65,7 +65,7 @@ export default function BossChallenge({
   if (status === "timeout") {
     return (
       <Box sx={{ textAlign: "center" }}>
-        <Typography sx={{ fontSize: 50 }}>🌇</Typography>
+        <img src="/icons/game/times-up.png" alt="Time's up!" style={{ height: 52, marginBottom: 6 }} />
         <Typography sx={{ fontWeight: 800, fontSize: 20, mb: 1 }}>The sun went down!</Typography>
         <Typography sx={{ color: "#666", mb: 2 }}>Don't worry — every hero gets another sunrise.</Typography>
         <Button variant="contained" onClick={retry} sx={{ fontWeight: 800, borderRadius: 3 }}>
@@ -78,7 +78,7 @@ export default function BossChallenge({
   if (status === "won") {
     return (
       <Box sx={{ textAlign: "center" }}>
-        <Typography sx={{ fontSize: 50 }}>🏅</Typography>
+        <img src="/icons/game/medal.png" alt="Medal" style={{ height: 64, animation: "popIn .4s" }} />
         <Typography sx={{ fontWeight: 800, fontSize: 20, color: "#2e7d32" }}>
           Boss mission complete{misses === 0 ? " — flawless run!" : "!"}
         </Typography>

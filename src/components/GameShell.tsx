@@ -24,7 +24,6 @@ import ContentCutRoundedIcon from "@mui/icons-material/ContentCutRounded";
 import ViewAgendaRoundedIcon from "@mui/icons-material/ViewAgendaRounded";
 import SoupKitchenRoundedIcon from "@mui/icons-material/SoupKitchenRounded";
 import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
-import PaidRoundedIcon from "@mui/icons-material/PaidRounded";
 import type { GameModule, Screen } from "../types";
 import { setMusic, setMuted, sfxClick } from "../sound";
 import { useGame } from "../state/GameContext";
@@ -124,7 +123,7 @@ export default function GameShell(p: Props) {
         </Box>
         <Box sx={{ display: "flex", gap: 1 }}>
           <Chip label={p.screen.rme} size="small" sx={{ bgcolor: "#fff3e0d9", fontWeight: 600 }} />
-          <Chip icon={<PaidRoundedIcon sx={{ color: "#f9a825 !important" }} />} label={p.coins}
+          <Chip icon={<img src="/icons/game/coin.png" width={18} height={18} alt="coins" />} label={p.coins}
             size="small" sx={{ bgcolor: "#ffffffd9", fontWeight: 700 }} />
         </Box>
       </Box>
@@ -208,9 +207,17 @@ export default function GameShell(p: Props) {
             </Typography>
             <Typography sx={{ fontSize: "clamp(12px, 1.7vw, 15px)" }}>{dialogue}</Typography>
           </Paper>
-          <Typography sx={{ fontSize: "clamp(24px, 4vw, 40px)", letterSpacing: 4, opacity: 0.95 }}>
-            {p.module.scenery}
-          </Typography>
+          {p.module.sceneryImgs ? (
+            <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1.2, opacity: 0.97 }}>
+              {p.module.sceneryImgs.map((src) => (
+                <img key={src} src={src} alt="" style={{ height: "clamp(30px, 5vw, 48px)", filter: "drop-shadow(0 3px 3px #0004)" }} />
+              ))}
+            </Box>
+          ) : (
+            <Typography sx={{ fontSize: "clamp(24px, 4vw, 40px)", letterSpacing: 4, opacity: 0.95 }}>
+              {p.module.scenery}
+            </Typography>
+          )}
         </Box>
       </Box>
 
@@ -282,6 +289,13 @@ export default function GameShell(p: Props) {
         <Paper sx={{ position: "absolute", right: 14, bottom: 70, p: 1.5, maxWidth: 300, zIndex: 6, bgcolor: "#fff8e1", border: "2px solid #f9a825", borderRadius: 2 }}>
           <Typography sx={{ fontSize: 14 }}>💡 {p.hint}</Typography>
         </Paper>
+      )}
+
+      {/* CORRECT! ribbon (asset pack) when solved */}
+      {p.solved && (
+        <Box sx={{ position: "absolute", top: "13%", left: 0, right: 0, display: "flex", justifyContent: "center", zIndex: 6, pointerEvents: "none" }}>
+          <img src="/icons/game/correct.png" alt="Correct!" style={{ height: 44, animation: "popIn .4s", filter: "drop-shadow(0 4px 6px #0006)" }} />
+        </Box>
       )}
 
       {/* big yellow NEXT arrow when solved (reference-style) */}

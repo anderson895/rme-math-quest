@@ -14,7 +14,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Box, Chip, Dialog, DialogContent, DialogTitle, IconButton, Tooltip, Typography, Button,
-  TextField, ToggleButton, ToggleButtonGroup,
+  TextField, ToggleButton, ToggleButtonGroup, useMediaQuery,
 } from "@mui/material";
 import MusicNoteRoundedIcon from "@mui/icons-material/MusicNoteRounded";
 import MusicOffRoundedIcon from "@mui/icons-material/MusicOffRounded";
@@ -211,6 +211,24 @@ export default function MainMenu({
   const [shakeIdx, setShakeIdx] = useState<number | null>(null);
   const [selectIdx, setSelectIdx] = useState<number | null>(null); // level-select dialog
   const [walking, setWalking] = useState(false); // traveler mid-walk to the next stop
+
+  /* small screens: the map stays LARGE and becomes draggable/pannable */
+  const compact = useMediaQuery("(max-height: 620px), (max-width: 760px)");
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const mapBoxRef = useRef<HTMLDivElement>(null);
+
+  // keep the traveler centered in view (also follows them while walking)
+  useEffect(() => {
+    if (!compact || !avatarPt) return;
+    const sc = scrollerRef.current;
+    const inner = mapBoxRef.current;
+    if (!sc || !inner) return;
+    const scale = inner.clientWidth / 1000;
+    sc.scrollTo({
+      left: avatarPt.x * scale - sc.clientWidth / 2,
+      top: avatarPt.y * scale - sc.clientHeight / 2,
+    });
+  }, [avatarPt, compact]);
   const [info, setInfo] = useState<Poi | null>(null);              // tapped map object
 
   /* --- overall progress → position along the road --- */
@@ -337,15 +355,42 @@ export default function MainMenu({
       </Box>
 
       {/* the barangay map board */}
+      {/* on small screens the map stays LARGE inside a draggable viewport;
+          on desktop it fits the screen as before */}
       <Box
+        ref={scrollerRef}
+        sx={
+          compact
+            ? {
+                alignSelf: "stretch",
+                flex: 1,
+                minHeight: 0,
+                overflow: "auto",
+                borderRadius: 3,
+                scrollbarWidth: "none",
+                "&::-webkit-scrollbar": { display: "none" },
+                WebkitOverflowScrolling: "touch",
+              }
+            : { display: "contents" }
+        }
+      >
+      <Box
+        ref={mapBoxRef}
         sx={{
           position: "relative",
-          // width is ALSO derived from the available height so the map
-          // always fits short screens (mobile landscape) — no clipping
-          width: "min(1320px, 97vw, calc((100vh - 112px) * 1.6667))",
-          "@supports (height: 100dvh)": {
-            width: "min(1320px, 97vw, calc((100dvh - 112px) * 1.6667))",
-          },
+          ...(compact
+            ? {
+                // bigger than the screen — drag to explore the barangay
+                width: "max(1150px, 135vw)",
+              }
+            : {
+                // width is ALSO derived from the available height so the
+                // map always fits the screen — no clipping
+                width: "min(1320px, 97vw, calc((100vh - 112px) * 1.6667))",
+                "@supports (height: 100dvh)": {
+                  width: "min(1320px, 97vw, calc((100dvh - 112px) * 1.6667))",
+                },
+              }),
           aspectRatio: "1000 / 600",
           filter: "drop-shadow(0 12px 16px #0007)",
         }}
@@ -523,6 +568,7 @@ export default function MainMenu({
             </g>
           )}
         </svg>
+      </Box>
       </Box>
 
       <Typography sx={{ fontSize: 10.5, color: "#33691e", opacity: 0.8, "@media (max-height: 500px)": { display: "none" } }}>

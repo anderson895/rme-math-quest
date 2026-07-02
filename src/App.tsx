@@ -26,6 +26,14 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <GameProvider>
+        {/* shown only on touch devices held in portrait */}
+        <div className="rotate-overlay">
+          <div className="rotate-phone" />
+          <div style={{ fontWeight: 800, fontSize: 22 }}>I-rotate ang device mo!</div>
+          <div style={{ fontSize: 15, opacity: 0.9 }}>
+            Mas maganda ang Barangay Masagana Math Quest sa landscape view.
+          </div>
+        </div>
         {view.name === "menu" ? (
           <MainMenu onPlay={(moduleIdx, startIndex) => setView({ name: "play", moduleIdx, startIndex })} />
         ) : (

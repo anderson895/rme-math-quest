@@ -50,11 +50,11 @@ function MapIcon({
   return <text y={textY} textAnchor="middle" fontSize={fontSize}>{icon}</text>;
 }
 
-const SCREENS_PER_MODULE = 14;
+const SCREENS_PER_MODULE = 16;
 /* screen 1 (mission briefing) is narrative — NOT a stop point; the
-   road only counts the 13 actual lessons (screens 2–14) */
+   road counts the 15 actual lessons (screens 2–16) */
 const NARRATIVE_SCREENS = 1;
-const LESSON_COUNT = SCREENS_PER_MODULE - NARRATIVE_SCREENS; // 13
+const LESSON_COUNT = SCREENS_PER_MODULE - NARRATIVE_SCREENS; // 15
 const lessonsDoneOf = (screenIndex: number, completed: boolean) =>
   completed ? LESSON_COUNT : Math.max(0, Math.min(screenIndex - NARRATIVE_SCREENS, LESSON_COUNT));
 
@@ -123,7 +123,7 @@ const MAP_POIS: Poi[] = [
   },
 ];
 
-const PLACE_NAMES = ["Bukid ni Tatay Ben", "Tindahan ni Ate Lalay", "Plaza ng Barangay"];
+const PLACE_NAMES = ["Bukid ni Tatay Ben", "Tindahan ni Manang Lalay", "Plaza ng Barangay"];
 
 /* buildings/props rendered right BESIDE their station (offsets are
    relative to the station node, so they always stay together) */

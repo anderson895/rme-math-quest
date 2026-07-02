@@ -82,6 +82,14 @@ export const MODULES: GameModule[] = [
         rme: "Level Principle", reward: 20,
       },
       {
+        id: "m1s7b", type: "numberline", slide: "Slide 7b: Trail to Sitio Lima (NEW)",
+        banner: "MARK THE SHORTCUT IN FIFTHS",
+        dialogue:
+          "This shortcut to Sitio Lima is divided into five equal parts. Place every road sign so no cart gets lost!",
+        den: 5, targets: [1, 3, 4],
+        rme: "Activity Principle", reward: 30,
+      },
+      {
         id: "m1s8", type: "model-shade", slide: "Slide 8: Greenhouse Grid (NEW)",
         banner: "FILL 7/10 OF THE GREENHOUSE GRID",
         dialogue: "The community greenhouse has ten planting beds. Show me seven-tenths — every seedling counts!",
@@ -95,6 +103,14 @@ export const MODULES: GameModule[] = [
           "Merienda break! Four hardworking kids helped carry the tools. Cut the bibingka so everyone gets a fair share — no crumbs of argument!",
         eaters: 4, eaterIcon: "🧒🏽", itemLabel: "bibingka rice cake",
         rme: "Level Principle", reward: 20,
+      },
+      {
+        id: "m1s9b", type: "bridge-build", slide: "Slide 9b: The Creek Crossing (NEW)",
+        banner: "REPAIR THE CREEK BRIDGE!",
+        dialogue:
+          "One more crossing before the festival! 📏 Measure this narrow gap, ✂️ cut planks that fit exactly, then 🧴 glue them tight.",
+        den: 8, gapNum: 3, walker: "👧🏽",
+        rme: "Activity Principle", reward: 35,
       },
       {
         id: "m1s10", type: "order", slide: "Slide 10: Compare Farm Lots",
@@ -179,8 +195,8 @@ export const MODULES: GameModule[] = [
   {
     id: "m2",
     title: "The Honest Assistant",
-    subtitle: "with Ate Lalay, the Honest Storekeeper",
-    npc: { icon: "👩🏽‍💼", name: "Ate Lalay", role: "The Honest Storekeeper" },
+    subtitle: "with Manang Lalay, the Honest Storekeeper",
+    npc: { icon: "👩🏽‍💼", name: "Manang Lalay", role: "The Honest Storekeeper" },
     competencies: [
       "Determine equivalent fractions",
       "Identify multiples of numbers up to 100",
@@ -254,6 +270,14 @@ export const MODULES: GameModule[] = [
         rme: "Level Principle", reward: 25,
       },
       {
+        id: "m2s8b", type: "sort-bins", slide: "Slide 8b: Weekend Delivery (NEW)",
+        banner: "SORT THE WEEKEND DELIVERY",
+        dialogue:
+          "Weekend delivery is here! These crates track by threes and tens — sort them to the right shelves so the inventory stays honest!",
+        bins: [3, 10], items: [9, 40, 21, 70, 27, 100],
+        rme: "Activity Principle", reward: 30,
+      },
+      {
         id: "m2s9", type: "simplify", slide: "Slide 9: Simplification Station",
         banner: "REDUCE THE LABEL: 4/8",
         dialogue:
@@ -274,6 +298,14 @@ export const MODULES: GameModule[] = [
         dialogue:
           "Another customer needs 2/3 of a jar of peanuts — but the third-size jars just ran out too! Divide a new jar and fill the exact same amount.",
         target: { n: 2, d: 3 }, forbidden: 3, customerIcon: "👵🏽",
+        rme: "Level Principle", reward: 25,
+      },
+      {
+        id: "m2s11b", type: "jar-fill", slide: "Slide 11b: Merienda Jars (NEW)",
+        banner: "SERVE 3/4 A JAR — QUARTER JARS ARE RESERVED!",
+        dialogue:
+          "A tricycle driver wants 3/4 of a jar of biscuits, but all the quarter-marked jars are reserved! Build the exact same amount in a different jar size.",
+        target: { n: 3, d: 4 }, forbidden: 4, customerIcon: "👷🏽",
         rme: "Level Principle", reward: 25,
       },
       {
@@ -462,6 +494,17 @@ export const MODULES: GameModule[] = [
         rme: "Level Principle", reward: 25,
       },
       {
+        id: "m3s10b", type: "equation", slide: "Slide 10b: Ang Bilao ng Kakanin (NEW)",
+        banner: "HOW MUCH KAKANIN IS LEFT?",
+        dialogue:
+          "The bilao still had 7/8 of its kakanin, then the street dancers ate 1/4 of the tray. How much remains for the visitors?",
+        story: "7/8 − 1/4 = ? of the bilao",
+        expr: "7/8 − 1/4 = ?",
+        answer: { n: 5, d: 8 },
+        hint: "Convert to eighths: 7/8 − 2/8.",
+        rme: "Level Principle", reward: 30,
+      },
+      {
         id: "m3s11", type: "equation", slide: "Slide 11: The Sugar Ledger (NEW)",
         banner: "MULTI-STEP: THE SUGAR SUPPLY",
         dialogue:
@@ -471,6 +514,15 @@ export const MODULES: GameModule[] = [
         answer: { n: 1, d: 4 },
         hint: "Use twelfths: 10/12 − 4/12 − 3/12.",
         rme: "Level Principle", reward: 40,
+      },
+      {
+        id: "m3s11b", type: "punch-mix", slide: "Slide 11b: The Grand Batch (NEW)",
+        banner: "GRAND BATCH: EXACTLY 11/12!",
+        dialogue:
+          "The mayor is arriving — mix the grandest batch yet! Reach exactly the 11/12 line using three different ladles. Zero spills!",
+        target: { n: 11, d: 12 },
+        ladles: [{ n: 1, d: 2 }, { n: 1, d: 4 }, { n: 1, d: 6 }],
+        rme: "Level Principle", reward: 35,
       },
       {
         id: "m3s12", type: "mcq", slide: "Slide 12: Shared Booth Setup",

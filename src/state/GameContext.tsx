@@ -28,7 +28,7 @@ const DEFAULT: Progress = {
   completed: {},
 };
 
-const SCREENS_PER_MODULE = 14; // title screens removed — briefing is screen 1
+const SCREENS_PER_MODULE = 16; // 1 mission briefing + 15 lessons per module
 
 const KEY = "rme-math-quest-progress";
 

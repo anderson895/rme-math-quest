@@ -93,3 +93,14 @@ body {
   0%   { transform: translateX(0);    opacity: 1; }
   100% { transform: translateX(140%); opacity: 0; }
 }
+
+/* map points of interest: gentle pop on hover */
+.poi {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.poi:hover {
+  transform: scale(1.09);
+}

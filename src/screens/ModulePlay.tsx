@@ -86,10 +86,16 @@ export default function ModulePlay({
       return;
     }
     setScreenIndex(module.id, next);
-    setIdx(next);
-    setSolved(false);
-    setResetKey(0);
-    clearToolState();
+    // back to the map — the traveler walks to the next stop point.
+    // (the briefing flows straight into its first lesson instead)
+    if (screen.type === "dialogue" && idx === 0) {
+      setIdx(next);
+      setSolved(false);
+      setResetKey(0);
+      clearToolState();
+      return;
+    }
+    onExit();
   };
 
   // dialogue screens complete via their own button and advance directly

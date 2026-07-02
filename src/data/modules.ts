@@ -35,18 +35,10 @@ export const MODULES: GameModule[] = [
     themeColor: "#689f38",
     screens: [
       {
-        id: "m1s1", type: "dialogue", slide: "Slide 1: Title Screen",
-        banner: "ROAD TO THE HARVEST FESTIVAL",
-        dialogue:
-          "Welcome, Young Harvest Ranger! The Harvest Festival is near, but the roads are damaged. Help the community restore the pathways by solving fraction challenges!",
-        art: "🛖🌾🐃", avatarSelect: true, buttonLabel: "Start Game",
-        rme: "Reality Principle", reward: 0,
-      },
-      {
         id: "m1s2", type: "dialogue", slide: "Slide 2: Mission Briefing",
         banner: "MISSION BRIEFING",
         dialogue:
-          "The delivery carts cannot pass because the road markers are missing. A road is like a number line from 0 to 1 — we need your help placing the fractions correctly!",
+          "Welcome, {name}! The Harvest Festival is near, but the delivery carts cannot pass — the road markers are missing. A road is like a number line from 0 to 1; help us place the fractions correctly!",
         demo: "numberline", buttonLabel: "I'm Ready!",
         rme: "Guidance Principle", reward: 50,
       },
@@ -205,18 +197,10 @@ export const MODULES: GameModule[] = [
     themeColor: "#f57c00",
     screens: [
       {
-        id: "m2s1", type: "dialogue", slide: "Slide 1: Title Screen",
-        banner: "THE HONEST ASSISTANT",
-        dialogue:
-          "Mabuhay, {name}! Welcome to the store. We have a huge shipment arriving, and I need a sharp assistant to help sort inventory using fractions!",
-        art: "🏪🧃🍬", buttonLabel: "Apply as Assistant",
-        rme: "Reality Principle", reward: 0,
-      },
-      {
         id: "m2s2", type: "dialogue", slide: "Slide 2: Mission Briefing",
         banner: "EQUIVALENT FRACTIONS 101",
         dialogue:
-          "Customers ask for different forms. 2/4 of a jar is the same as 4/8! Let's review how we scale fractions using factors and multiples.",
+          "Mabuhay, {name}! Welcome to the store — I need a sharp assistant! Customers ask for different forms: 2/4 of a jar is the same as 4/8. Let's review how we scale fractions using factors and multiples.",
         demo: "equivalent", buttonLabel: "Got It!",
         rme: "Guidance Principle", reward: 50,
       },
@@ -389,18 +373,10 @@ export const MODULES: GameModule[] = [
     themeColor: "#7b1fa2",
     screens: [
       {
-        id: "m3s1", type: "dialogue", slide: "Slide 1: Title Screen",
-        banner: "FIESTA SA NAYON",
-        dialogue:
-          "Maligayang Fiesta, {name}! We are still setting up food stations and hanging decorations. Let's use our fraction skills to coordinate!",
-        art: "🎪🎏🏮", buttonLabel: "Join the Committee",
-        rme: "Reality Principle", reward: 0,
-      },
-      {
         id: "m3s2", type: "dialogue", slide: "Slide 2: Mission Briefing",
         banner: "FINDING COMMON GROUND (LCD)",
         dialogue:
-          "To hang flag lines and mix punch, we must add and subtract dissimilar fractions. Let's see how we find common ground using common denominators!",
+          "Maligayang Fiesta, {name}! To hang flag lines and mix punch, we must add and subtract dissimilar fractions. Let's see how we find common ground using common denominators!",
         demo: "lcd", buttonLabel: "Let's Do This!",
         rme: "Guidance Principle", reward: 50,
       },

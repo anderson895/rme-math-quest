@@ -443,7 +443,7 @@ export default function MainMenu({
               string connects seamlessly across the whole map */}
           {[10, 250, 490, 730].map((bx) => (
             <image key={bx} href="/icons/game/banderitas.png"
-              x={bx} y={6} width={260} height={42} preserveAspectRatio="none" />
+              x={bx} y={6} width={260} height={142} preserveAspectRatio="none" />
           ))}
 
           {/* clickable landmarks: hover pop + info card (church now at the center) */}

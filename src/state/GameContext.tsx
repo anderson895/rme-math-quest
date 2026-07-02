@@ -13,6 +13,7 @@ export interface Progress {
   avatar: string;                         // derived from gender
   unlocked: number;                       // how many modules are playable
   screenIndex: Record<string, number>;    // moduleId -> next screen to play
+  maxScreen: Record<string, number>;      // moduleId -> farthest screen reached (for replay)
   completed: Record<string, boolean>;     // moduleId -> finished flag
 }
 
@@ -23,8 +24,11 @@ const DEFAULT: Progress = {
   avatar: "🧒🏽",
   unlocked: 1,
   screenIndex: {},
+  maxScreen: {},
   completed: {},
 };
+
+const SCREENS_PER_MODULE = 15;
 
 const KEY = "rme-math-quest-progress";
 
@@ -65,11 +69,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
           avatar: gender === "male" ? "👦🏽" : gender === "female" ? "👧🏽" : "🧒🏽",
         })),
       setScreenIndex: (id, idx) =>
-        setProgress((p) => ({ ...p, screenIndex: { ...p.screenIndex, [id]: idx } })),
+        setProgress((p) => ({
+          ...p,
+          screenIndex: { ...p.screenIndex, [id]: idx },
+          maxScreen: { ...p.maxScreen, [id]: Math.max(p.maxScreen[id] ?? 0, idx) },
+        })),
       completeModule: (id, moduleCount) =>
         setProgress((p) => ({
           ...p,
           completed: { ...p.completed, [id]: true },
+          maxScreen: { ...p.maxScreen, [id]: SCREENS_PER_MODULE - 1 },
           unlocked: Math.min(moduleCount, Math.max(p.unlocked, moduleIndexFromId(id) + 2)),
         })),
       resetProgress: () => setProgress(DEFAULT),

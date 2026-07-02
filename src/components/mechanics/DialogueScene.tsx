@@ -4,6 +4,7 @@ import type { DialogueScreen } from "../../types";
 import MiniBar from "../MiniBar";
 import { useGame } from "../../state/GameContext";
 import type { Gender } from "../../state/GameContext";
+import GameIcon from "../GameIcon";
 import { sfxClick } from "../../sound";
 
 /** Title / briefing / feedback / reward slides — narrative screens. */
@@ -53,10 +54,10 @@ export default function DialogueScene({
             }}
           >
             <ToggleButton value="male" sx={{ px: 3, gap: 1, fontWeight: 800 }}>
-              <Typography sx={{ fontSize: 30 }}>👦🏽</Typography> Male
+              <GameIcon icon="👦🏽" size={30} /> Male
             </ToggleButton>
             <ToggleButton value="female" sx={{ px: 3, gap: 1, fontWeight: 800 }}>
-              <Typography sx={{ fontSize: 30 }}>👧🏽</Typography> Female
+              <GameIcon icon="👧🏽" size={30} /> Female
             </ToggleButton>
           </ToggleButtonGroup>
           {profileIncomplete && (

@@ -113,18 +113,12 @@ export const MODULES: GameModule[] = [
         rme: "Level Principle", reward: 30,
       },
       {
-        id: "m1s12", type: "mcq", slide: "Slide 12: Team Challenge",
-        banner: "WHICH DELIVERY PATH IS SHORTER?",
+        id: "m1s12", type: "bridge-build", slide: "Slide 12: The Broken Bridge (NEW)",
+        banner: "REPAIR THE BRIDGE — MEASURE, CUT, GLUE!",
         dialogue:
-          "Work with your partner! Route A is 5/8 km and Route B is 3/4 km. Which path reaches the market faster?",
-        question: "Choose the shorter route for the delivery cart.",
-        choices: [
-          { label: "Route A — 5/8 km" },
-          { label: "Route B — 3/4 km" },
-          { label: "They are equal" },
-        ],
-        answer: 0,
-        rme: "Interactivity Principle", reward: 25,
+          "The bunny can't cross to the market! 📏 Measure the gap with the ruler, ✂️ cut the plank so the pieces fit, then 🧴 glue them in place.",
+        den: 5, gapNum: 2, walker: "🐇",
+        rme: "Interactivity Principle", reward: 30,
       },
       {
         id: "m1s13", type: "boss", slide: "Slide 13: Boss Mission",
@@ -194,7 +188,7 @@ export const MODULES: GameModule[] = [
       "Identify multiples of numbers up to 100",
       "Reduce fractions into simplest form",
     ],
-    scenery: "🏪🍬🥫🧃🍪🧺🍭",
+    scenery: "🏪🍬⚖️🧃🍪🧺🍭",
     themeColor: "#f57c00",
     screens: [
       {

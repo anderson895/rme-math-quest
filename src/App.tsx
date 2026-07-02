@@ -15,7 +15,9 @@ const theme = createTheme({
   shape: { borderRadius: 10 },
 });
 
-type View = { name: "menu" } | { name: "play"; moduleIdx: number };
+type View =
+  | { name: "menu" }
+  | { name: "play"; moduleIdx: number; startIndex?: number };
 
 export default function App() {
   const [view, setView] = useState<View>({ name: "menu" });
@@ -25,11 +27,12 @@ export default function App() {
       <CssBaseline />
       <GameProvider>
         {view.name === "menu" ? (
-          <MainMenu onPlay={(moduleIdx) => setView({ name: "play", moduleIdx })} />
+          <MainMenu onPlay={(moduleIdx, startIndex) => setView({ name: "play", moduleIdx, startIndex })} />
         ) : (
           <ModulePlay
-            key={view.moduleIdx}
+            key={`${view.moduleIdx}-${view.startIndex ?? "resume"}`}
             moduleIdx={view.moduleIdx}
+            startIndex={view.startIndex}
             onExit={() => setView({ name: "menu" })}
           />
         )}

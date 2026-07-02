@@ -11,17 +11,17 @@ import { Box, Button, Paper, Slider, Typography } from "@mui/material";
 import ContentCutRoundedIcon from "@mui/icons-material/ContentCutRounded";
 import { useEffect, useState } from "react";
 import type { CutShareScreen } from "../../types";
+import GameIcon from "../GameIcon";
 import { sfxClick, sfxCorrect, sfxWrong } from "../../sound";
 
 interface Props {
   screen: CutShareScreen;
   activeTools: string[];
   closePanel: (id: string) => void;
-  eraseSignal: number;
   onSolved: (perfect: boolean) => void;
 }
 
-export default function CutShare({ screen, activeTools, closePanel, eraseSignal, onSolved }: Props) {
+export default function CutShare({ screen, activeTools, closePanel, onSolved }: Props) {
   const [pieces, setPieces] = useState(0);       // 0 = still whole
   const [given, setGiven] = useState(0);         // pieces already handed out
   const [sliderVal, setSliderVal] = useState(2);
@@ -33,15 +33,22 @@ export default function CutShare({ screen, activeTools, closePanel, eraseSignal,
   const ruler = activeTools.includes("ruler");
   const correctCut = pieces === screen.eaters;
 
-  /* 🧽 eraser pulse: restore the whole plank */
+  /* 🧴 glue: sticks the cut pieces back together into one whole */
   useEffect(() => {
-    if (eraseSignal === 0 || done) return;
-    sfxClick();
-    setPieces(0);
-    setGiven(0);
-    setFeedback("🧽 All clean! The plank is whole again — cut it with the ✂️ tool.");
+    if (!activeTools.includes("glue")) return;
+    if (!done) {
+      if (pieces > 0) {
+        sfxClick();
+        setPieces(0);
+        setGiven(0);
+        setFeedback(`🧴 Glued back together! ${pieces} × 1/${pieces} pieces make 1 whole again.`);
+      } else {
+        setFeedback("🧴 Nothing to glue yet — cut the plank with ✂️ first!");
+      }
+    }
+    closePanel("glue"); // instant action: auto-untoggle
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eraseSignal]);
+  }, [activeTools]);
 
   const cut = () => {
     sfxClick();
@@ -154,13 +161,13 @@ export default function CutShare({ screen, activeTools, closePanel, eraseSignal,
           const fed = i < given;
           return (
             <Box key={i} sx={{ textAlign: "center" }}>
-              <Typography sx={{
-                fontSize: 46, lineHeight: 1.1,
+              <Box sx={{
+                lineHeight: 1.1,
                 filter: "drop-shadow(0 3px 3px #0004)",
                 animation: fed ? "pulse .4s 2 alternate" : "none",
               }}>
-                {screen.eaterIcon}
-              </Typography>
+                <GameIcon icon={screen.eaterIcon} size={46} />
+              </Box>
               {fed ? (
                 <Box sx={{ ...plank, width: 58, height: 30, fontSize: 14, mx: "auto", animation: "dropIn .45s cubic-bezier(.3, 1.4, .5, 1) both" }}>
                   <span>1&frasl;{pieces}</span>

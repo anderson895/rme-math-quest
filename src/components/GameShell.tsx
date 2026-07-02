@@ -24,11 +24,11 @@ import ContentCutRoundedIcon from "@mui/icons-material/ContentCutRounded";
 import ViewAgendaRoundedIcon from "@mui/icons-material/ViewAgendaRounded";
 import SoupKitchenRoundedIcon from "@mui/icons-material/SoupKitchenRounded";
 import StraightenRoundedIcon from "@mui/icons-material/StraightenRounded";
-import CleaningServicesRoundedIcon from "@mui/icons-material/CleaningServicesRounded";
 import PaidRoundedIcon from "@mui/icons-material/PaidRounded";
 import type { GameModule, Screen } from "../types";
 import { setMusic, setMuted, sfxClick } from "../sound";
 import { useGame } from "../state/GameContext";
+import GameIcon from "./GameIcon";
 
 /* level tools: each has its own function; ruler/eraser combine with the rest */
 const TOOL_DEFS: Record<string, { icon: ReactNode; label: string; color: string }> = {
@@ -36,18 +36,23 @@ const TOOL_DEFS: Record<string, { icon: ReactNode; label: string; color: string 
   divider:  { icon: <ViewAgendaRoundedIcon />,       label: "Jar divider — choose jar sections",   color: "#c2185b" },
   ladle:    { icon: <SoupKitchenRoundedIcon />,      label: "Ladle rack — pour fractions",         color: "#c2185b" },
   ruler:    { icon: <StraightenRoundedIcon />,       label: "Ruler — measure the fractions",       color: "#00838f" },
-  eraser:   { icon: <CleaningServicesRoundedIcon />, label: "Eraser — clear your work",            color: "#6d4c41" },
+  glue:     {
+    icon: <Typography component="span" sx={{ fontSize: 20, lineHeight: 1 }}>🧴</Typography>,
+    label: "Glue — stick pieces together",
+    color: "#6d4c41",
+  },
 };
 
 /* step-by-step guide per mechanic, shown with arrows under the banner */
 const STEP_GUIDES: Partial<Record<Screen["type"], string[]>> = {
   "cut-share":   ["Tap the ✂️ tool & cut equal parts", "📏 Ruler measures pieces", "Give each friend a piece"],
+  "bridge-build": ["📏 Measure the gap", "✂️ Cut pieces that fit", "🧴 Glue them into the bridge"],
   "jar-fill":    ["Tap the 🫙 divider & pick a size", "Tap sections to fill candy", "Serve the customer"],
   "punch-mix":   ["Tap the 🥄 ladle rack", "Pour exactly to the line", "📏 Ruler shows the level"],
+  order:         ["Load sacks smallest → largest", "Tap a loaded sack to take it back", "Check — the carabao hauls it away!"],
   numberline:    ["Tap a road sign", "Tap its spot on the road", "Place all signs"],
   "model-shade": ["Tap beds to shade", "Count the shaded parts", "Press Check"],
   mcq:           ["Read the question", "Tap the best answer"],
-  order:         ["Tap cards smallest → largest", "Press Check Order"],
   "sort-bins":   ["Tap a box", "Tap its multiple shelf", "Sort them all"],
   balance:       ["Read the target weight", "Tap the sack that balances"],
   simplify:      ["Tap a common factor ÷", "Repeat until simplest"],
@@ -194,9 +199,9 @@ export default function GameShell(p: Props) {
       {/* NPC dialogue strip + characters row (bottom, like the owls row) */}
       <Box sx={{ zIndex: 3, px: 2, pb: 7 }}>
         <Box sx={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 1.5 }}>
-          <Typography sx={{ fontSize: "clamp(44px, 7vw, 72px)", lineHeight: 1, filter: "drop-shadow(0 4px 3px #0005)" }}>
-            {p.module.npc.icon}
-          </Typography>
+          <Box sx={{ filter: "drop-shadow(0 4px 3px #0005)", display: "flex", alignItems: "flex-end" }}>
+            <GameIcon icon={p.module.npc.icon} size={64} alt={p.module.npc.name} />
+          </Box>
           <Paper sx={{ px: 2, py: 1, maxWidth: 560, bgcolor: "#fffde7", border: "2px solid #5d4037", borderRadius: 2 }}>
             <Typography sx={{ fontWeight: 700, color: "#5d4037", fontSize: 13 }}>
               {p.module.npc.name}

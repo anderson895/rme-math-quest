@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import type { JarFillScreen } from "../../types";
 import { equals } from "../../utils/frac";
 import FractionText from "../FractionText";
+import GameIcon from "../GameIcon";
 import { sfxClick, sfxCorrect, sfxWrong } from "../../sound";
 
 interface Props {
@@ -80,7 +81,9 @@ export default function JarFill({ screen, activeTools, closePanel, eraseSignal, 
     <Box sx={{ textAlign: "center", position: "relative" }}>
       {/* customer order card */}
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 1.5, mb: 1.5 }}>
-        <Typography sx={{ fontSize: 44, filter: "drop-shadow(0 3px 3px #0004)" }}>{screen.customerIcon}</Typography>
+        <Box sx={{ filter: "drop-shadow(0 3px 3px #0004)" }}>
+          <GameIcon icon={screen.customerIcon} size={44} />
+        </Box>
         <Paper sx={{ px: 2, py: 0.8, bgcolor: "#fff", border: "2px solid #5d4037", borderRadius: 2 }}>
           <Typography sx={{ fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center" }}>
             I'd like&nbsp;<FractionText frac={screen.target} size={16} />&nbsp;of a jar, please!

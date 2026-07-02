@@ -14,6 +14,7 @@ import { Box, Button, Paper, Slider, Typography } from "@mui/material";
 import ContentCutRoundedIcon from "@mui/icons-material/ContentCutRounded";
 import { useState } from "react";
 import type { BridgeBuildScreen } from "../../types";
+import GameIcon from "../GameIcon";
 import { sfxClick, sfxCorrect, sfxWrong } from "../../sound";
 
 interface Props {
@@ -111,13 +112,13 @@ export default function BridgeBuild({ screen, activeTools, closePanel, onSolved 
         )}
 
         {/* walker waiting at the left bank */}
-        <Typography sx={{
+        <Box sx={{
           position: "absolute", top: -34, left: done ? undefined : "-6%",
-          fontSize: 30, zIndex: 3,
+          zIndex: 3,
           animation: done ? "walkAcross 2.4s ease-in-out forwards" : "none",
         }}>
-          {screen.walker}
-        </Typography>
+          <GameIcon icon={screen.walker} size={30} />
+        </Box>
 
         {/* river */}
         <Box sx={{ position: "relative", height: 52, borderRadius: 1.5, overflow: "visible", bgcolor: "#4fc3f7", border: "3px solid #0288d1" }}>

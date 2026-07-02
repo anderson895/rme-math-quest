@@ -4,6 +4,7 @@ import { useGame } from "../state/GameContext";
 import GameShell from "../components/GameShell";
 import DialogueScene from "../components/mechanics/DialogueScene";
 import CutShare from "../components/mechanics/CutShare";
+import BridgeBuild from "../components/mechanics/BridgeBuild";
 import JarFill from "../components/mechanics/JarFill";
 import PunchMix from "../components/mechanics/PunchMix";
 import NumberLinePlot from "../components/mechanics/NumberLinePlot";
@@ -21,25 +22,28 @@ import { sfxCoin } from "../sound";
 /* which tools each mechanic gets; the first one is the primary tool
    (gets the guide arrow). Ruler + eraser combine with the primary. */
 const TOOLSETS: Partial<Record<Screen["type"], string[]>> = {
-  "cut-share": ["scissors", "ruler", "eraser"],
-  "jar-fill":  ["divider", "ruler", "eraser"],
-  "punch-mix": ["ladle", "ruler", "eraser"],
+  "cut-share":    ["scissors", "ruler", "glue"],
+  "bridge-build": ["ruler", "scissors", "glue"],
+  "jar-fill":     ["divider", "ruler"],
+  "punch-mix":    ["ladle", "ruler"],
 };
 
 /** Runs one module: renders the current screen's mechanic inside GameShell
     and handles progression, coins, tools, and resume position. */
 export default function ModulePlay({
   moduleIdx,
+  startIndex,
   onExit,
 }: {
   moduleIdx: number;
+  startIndex?: number;   // replay a specific level from the level select
   onExit: () => void;
 }) {
   const module = MODULES[moduleIdx];
   const { progress, addCoins, setScreenIndex, completeModule } = useGame();
 
   const [idx, setIdx] = useState(() =>
-    Math.min(progress.screenIndex[module.id] ?? 0, module.screens.length - 1)
+    Math.min(startIndex ?? progress.screenIndex[module.id] ?? 0, module.screens.length - 1)
   );
   const [solved, setSolved] = useState(false);
   const [resetKey, setResetKey] = useState(0);
@@ -58,11 +62,6 @@ export default function ModulePlay({
 
   const handleTool = (id: string) => {
     setToolUsed(true);
-    if (id === "eraser") {
-      // instant tool: fires an erase pulse into the mechanic
-      setEraseSignal((s) => s + 1);
-      return;
-    }
     setActiveTools((t) => (t.includes(id) ? t.filter((x) => x !== id) : [...t, id]));
   };
 
@@ -151,6 +150,7 @@ function Mechanic({
   switch (screen.type) {
     case "dialogue":    return <DialogueScene screen={screen} onDone={onDialogueDone} />;
     case "cut-share":   return <CutShare screen={screen} onSolved={onSolved} {...toolProps} />;
+    case "bridge-build": return <BridgeBuild screen={screen} onSolved={onSolved} activeTools={activeTools} closePanel={closePanel} />;
     case "jar-fill":    return <JarFill screen={screen} onSolved={onSolved} {...toolProps} />;
     case "punch-mix":   return <PunchMix screen={screen} onSolved={onSolved} {...toolProps} />;
     case "numberline":  return <NumberLinePlot screen={screen} onSolved={onSolved} />;

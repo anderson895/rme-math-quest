@@ -87,3 +87,9 @@ body {
   40%  { transform: translateY(-26px) rotate(-10deg); }
   100% { transform: translateY(80px) rotate(20deg); opacity: 0; }
 }
+
+/* the loaded carabao cart drives away when the order is correct */
+@keyframes cartAway {
+  0%   { transform: translateX(0);    opacity: 1; }
+  100% { transform: translateX(140%); opacity: 0; }
+}

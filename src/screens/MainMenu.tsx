@@ -11,7 +11,7 @@
    reached screen can be replayed.
    ============================================================ */
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Box, Chip, Dialog, DialogContent, DialogTitle, IconButton, Tooltip, Typography, Button,
 } from "@mui/material";
@@ -48,48 +48,31 @@ function MapIcon({
 
 const SCREENS_PER_MODULE = 15;
 
-/* where each community location sits along the barangay road */
-const NODE_F = [0.14, 0.52, 0.9];
+/* where each community location sits along the barangay road —
+   EQUALLY spaced by arc length so every lesson stopover is the
+   same walking distance (~46px apart, computed by tools/path_points.mjs) */
+const NODE_F = [0.34, 0.67, 1.0];
 const TRAIL_START_F = 0.02;
+
+/* horizontal nudge for station titles near the map edge */
+const TITLE_DX = [0, 0, -70];
 
 const PLACE_NAMES = ["Bukid ni Tatay Ben", "Tindahan ni Ate Lalay", "Plaza ng Barangay"];
 
-/* building/prop rendered right BESIDE its station (offsets are relative
-   to the station node, so they always stay together) */
-const STATION_DECOR = [
-  { href: "/icons/game/palay.png",           x: 50,   y: -46, w: 56,  h: 72 },
-  { href: "/icons/game/sari-sari-store.png", x: 44,   y: -106, w: 98, h: 110 },
-  { href: "/icons/game/festival-stall.png",  x: -170, y: -90, w: 118, h: 94 },
+/* buildings/props rendered right BESIDE their station (offsets are
+   relative to the station node, so they always stay together) */
+const STATION_DECOR: { href: string; x: number; y: number; w: number; h: number }[][] = [
+  // 1. Bukid — palay harvest beside Tatay Ben
+  [{ href: "/icons/game/palay.png", x: 50, y: -46, w: 56, h: 72 }],
+  // 2. Tindahan — the sari-sari store right beside Manang Lalay
+  [{ href: "/icons/game/sari-sari-store.png", x: 56, y: -76, w: 92, h: 104 }],
+  // 3. Plaza — fiesta stage in the foreground BELOW Kuya Onyok
+  // (clear gap under his feet so he isn't standing on the roof)
+  [
+    { href: "/icons/game/stage.png",   x: -60,  y: 110, w: 128, h: 88 },
+    { href: "/icons/game/plants.png",  x: -118, y: 124, w: 50,  h: 36 },
+  ],
 ];
-
-/* ============================================================
-   Original flat-style SVG buildings (own artwork — no external
-   assets needed). Swap for downloaded icons later by dropping
-   files in public/icons/ and editing these components.
-   ============================================================ */
-function CarSvg({ x, y, color = "#e53935", flip = false }: { x: number; y: number; color?: string; flip?: boolean }) {
-  return (
-    <g transform={`translate(${x}, ${y})${flip ? " scale(-1,1)" : ""}`}>
-      <rect x="-20" y="-10" width="40" height="12" rx="5" fill={color} stroke="#00000033" strokeWidth="1.5" />
-      <rect x="-11" y="-17" width="20" height="9" rx="4" fill="#a5d8f3" stroke="#546e7a" strokeWidth="1.5" />
-      <circle cx="-11" cy="3" r="4.5" fill="#37474f" />
-      <circle cx="11" cy="3" r="4.5" fill="#37474f" />
-    </g>
-  );
-}
-
-function BusSvg({ x, y }: { x: number; y: number }) {
-  return (
-    <g transform={`translate(${x}, ${y})`}>
-      <rect x="-30" y="-20" width="60" height="24" rx="5" fill="#42a5f5" stroke="#00000033" strokeWidth="1.5" />
-      {[-22, -6, 10].map((wx) => (
-        <rect key={wx} x={wx} y="-15" width="11" height="9" rx="2" fill="#e3f2fd" stroke="#1565c0" strokeWidth="1" />
-      ))}
-      <circle cx="-16" cy="6" r="5" fill="#37474f" />
-      <circle cx="16" cy="6" r="5" fill="#37474f" />
-    </g>
-  );
-}
 
 const TRAIL_D =
   "M 100 195 C 280 125 500 110 670 155 C 830 200 850 275 700 312 " +
@@ -104,6 +87,31 @@ const TYPE_ICONS: Record<Screen["type"], string> = {
 };
 
 interface Pt { x: number; y: number }
+interface Stop extends Pt { m: number; k: number }  // module index, lesson number (1..14)
+
+/* usable walk frames per character (boy frame 1 was dropped —
+   inconsistent art: no basket) */
+const WALK_FRAMES: Record<string, number[]> = {
+  boy: [0, 2, 3],
+  girl: [0, 1, 2, 3],
+};
+
+/** The traveler, animated with the walking packs. */
+function WalkingAvatar({ gender }: { gender: string }) {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setStep((s) => s + 1), 180);
+    return () => clearInterval(t);
+  }, []);
+  const who = gender === "female" ? "girl" : "boy";
+  const frames = WALK_FRAMES[who];
+  return (
+    <image
+      href={`/icons/game/walk/${who}-walk-${frames[step % frames.length]}.png`}
+      x={-22} y={-52} width={44} height={58}
+    />
+  );
+}
 
 export default function MainMenu({
   onPlay,
@@ -113,6 +121,7 @@ export default function MainMenu({
   const { progress, resetProgress } = useGame();
   const pathRef = useRef<SVGPathElement>(null);
   const [nodes, setNodes] = useState<Pt[]>([]);
+  const [stops, setStops] = useState<Stop[]>([]);
   const [avatarPt, setAvatarPt] = useState<Pt | null>(null);
   const [musicOn, setMusicOn] = useState(false);
   const [shakeIdx, setShakeIdx] = useState<number | null>(null);
@@ -124,7 +133,13 @@ export default function MainMenu({
   const curDone = progress.completed[MODULES[cur].id];
   const within = curDone ? 1 : (progress.screenIndex[MODULES[cur].id] ?? 0) / SCREENS_PER_MODULE;
   const segStart = cur === 0 ? TRAIL_START_F : NODE_F[cur - 1];
-  const avatarF = segStart + within * (NODE_F[cur] - segStart);
+  const segLen = NODE_F[cur] - segStart;
+  let avatarF = segStart + within * segLen;
+  // never stand ON TOP of an NPC: when a new module begins, wait on the
+  // road just past the previous station; when arriving, stop just before
+  // the station character
+  if (cur > 0 && within === 0) avatarF = segStart + (0.5 / SCREENS_PER_MODULE) * segLen;
+  if (within >= 1) avatarF = NODE_F[cur] - (0.45 / SCREENS_PER_MODULE) * segLen;
 
   useLayoutEffect(() => {
     const p = pathRef.current;
@@ -136,6 +151,19 @@ export default function MainMenu({
     };
     setNodes(NODE_F.map(at));
     setAvatarPt(at(avatarF));
+
+    // stopover dots: one per lesson along each module's road segment
+    // (lesson 15 is the station itself); the avatar lands exactly on
+    // these because its position uses the same fractions
+    const stopPts: Stop[] = [];
+    NODE_F.forEach((end, mi) => {
+      const start = mi === 0 ? TRAIL_START_F : NODE_F[mi - 1];
+      for (let k = 1; k < SCREENS_PER_MODULE; k++) {
+        const f = start + (k / SCREENS_PER_MODULE) * (end - start);
+        stopPts.push({ ...at(f), m: mi, k });
+      }
+    });
+    setStops(stopPts);
   }, [avatarF]);
 
   const maxReached = (mIdx: number) =>
@@ -168,22 +196,26 @@ export default function MainMenu({
         position: "fixed", inset: 0, overflow: "hidden",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         background: "linear-gradient(#aee3f5 0%, #cde9c0 30%, #9ccc65 100%)",
-        p: 2, gap: 1,
+        p: 1.5, gap: 0.6,
       }}
     >
       {/* title + player info */}
-      <Typography sx={{ fontWeight: 900, color: "#1b5e20", fontSize: "clamp(20px, 3.4vw, 32px)", textShadow: "0 2px 0 #fff8", textAlign: "center" }}>
-        🏘️ Barangay Masagana Math Quest
+      <Typography sx={{ fontWeight: 900, color: "#1b5e20", fontSize: "clamp(17px, 2.6vw, 26px)", textShadow: "0 2px 0 #fff8", textAlign: "center", display: "flex", alignItems: "center", gap: 1 }}>
+        <img src="/icons/game/bahay-kubo.png" alt="" style={{ height: "1.3em" }} />
+        Barangay Masagana Math Quest
       </Typography>
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "center" }}>
-        <Chip label={progress.name ? `${progress.avatar} ${progress.name}` : "👤 New resident — visit the farm first!"}
+        <Chip
+          icon={<GameIcon icon={progress.name ? progress.avatar : "👦🏽"} size={18} />}
+          label={progress.name || "New resident — visit the farm first!"}
           size="small" sx={{ bgcolor: "#fff", fontWeight: 800 }} />
         <Chip icon={<img src="/icons/game/coin.png" width={18} height={18} alt="coins" />} label={`${progress.coins} coins`}
           size="small" sx={{ bgcolor: "#fff", fontWeight: 800 }} />
-        <Chip label={`🏅 ${Object.values(progress.completed).filter(Boolean).length}/${MODULES.length} modules`}
+        <Chip icon={<img src="/icons/game/medal.png" width={18} height={18} alt="" />}
+          label={`${Object.values(progress.completed).filter(Boolean).length}/${MODULES.length} modules`}
           size="small" sx={{ bgcolor: "#fff", fontWeight: 800 }} />
         {UNLOCK_ALL_LEVELS && (
-          <Chip label="🛠️ DEV MODE — all levels unlocked" size="small"
+          <Chip label="DEV MODE — all levels unlocked" size="small"
             sx={{ bgcolor: "#212121", color: "#ffeb3b", fontWeight: 800 }} />
         )}
       </Box>
@@ -192,8 +224,8 @@ export default function MainMenu({
       <Box
         sx={{
           position: "relative",
-          width: "min(960px, 96vw)",
-          maxHeight: "74vh",
+          width: "min(1320px, 97vw)",
+          maxHeight: "82vh",
           aspectRatio: "1000 / 600",
           filter: "drop-shadow(0 12px 16px #0007)",
         }}
@@ -211,31 +243,45 @@ export default function MainMenu({
           <path ref={pathRef} d={TRAIL_D} fill="none" stroke="#eceff1" strokeWidth="3.5"
             strokeLinecap="round" strokeDasharray="18 14" />
 
-          {/* a crossing side street for the community feel */}
-          <rect x="452" y="330" width="52" height="248" fill="#455a64" rx="6" />
-          <line x1="478" y1="345" x2="478" y2="570" stroke="#eceff1" strokeWidth="3" strokeDasharray="14 12" />
 
-          {/* barangay decorations — all sprites from the asset packs */}
-          <image href="/icons/game/banderitas.png" x={250} y={26} width={500} height={58} preserveAspectRatio="none" />
+          {/* barangay decorations — each anchored where it makes sense */}
+          {/* banderitas hang on the top-right frame, away from station 1's title */}
+          <image href="/icons/game/banderitas.png" x={540} y={8} width={420} height={44} preserveAspectRatio="none" />
           <image href="/icons/game/bahay-kubo.png" x={82} y={58} width={118} height={108} />
-          <image href="/icons/game/church.png" x={34} y={228} width={106} height={142} />
-          <image href="/icons/game/stage.png" x={588} y={486} width={142} height={96} />
-          <image href="/icons/game/flower-box.png" x={232} y={62} width={72} height={44} />
-          <image href="/icons/game/plants.png" x={118} y={452} width={72} height={48} />
-          <image href="/icons/game/parol.png" x={62} y={392} width={40} height={70} />
+          {/* harvest festival stall in Tatay Ben's farm area */}
+          <image href="/icons/game/festival-stall.png" x={650} y={95} width={105} height={84} />
+          {/* church with garden flower box and a hanging parol (fiesta!) */}
+          <image href="/icons/game/church.png" x={26} y={190} width={132} height={155} />
+          <image href="/icons/game/flower-box.png" x={144} y={316} width={52} height={32} />
+          <image href="/icons/game/parol.png" x={154} y={208} width={28} height={52} />
           <image href="/icons/game/tree.png" x={30} y={112} width={56} height={78} />
           <image href="/icons/game/tree.png" x={905} y={128} width={52} height={72} />
           <image href="/icons/game/tree.png" x={398} y={40} width={50} height={70} />
-          <image href="/icons/game/tree.png" x={276} y={492} width={54} height={75} />
-          <image href="/icons/game/tree.png" x={912} y={368} width={52} height={72} />
+          <image href="/icons/game/tree.png" x={100} y={486} width={54} height={75} />
+          <image href="/icons/game/tree.png" x={545} y={372} width={52} height={72} />
           <image href="/icons/game/tree.png" x={846} y={76} width={52} height={72} />
           <image href="/icons/game/tree.png" x={688} y={498} width={52} height={72} />
-          {/* end-of-road flag */}
-          <image href="/icons/game/road-flag.png" x={886} y={296} width={44} height={58} />
-          {/* vehicles on the road */}
-          <CarSvg x={592} y={247} color="#ef6c00" />
-          <BusSvg x={372} y={412} />
-          <CarSvg x={790} y={382} color="#8e24aa" flip />
+          {/* finish-line flag at the plaza (road's end) */}
+          <image href="/icons/game/road-flag.png" x={932} y={268} width={40} height={52} />
+
+          {/* stopover dots — one per lesson; filled once that lesson is done */}
+          {stops.map((s, i) => {
+            const mod = MODULES[s.m];
+            const lessonsDone = progress.completed[mod.id]
+              ? SCREENS_PER_MODULE
+              : progress.screenIndex[mod.id] ?? 0;
+            const passed = lessonsDone >= s.k;
+            return (
+              <circle
+                key={i}
+                cx={s.x} cy={s.y} r={5.5}
+                fill={passed ? mod.themeColor : "#fffdf5"}
+                stroke={passed ? "#ffffff" : "#8d6e63"}
+                strokeWidth={2}
+                opacity={isLocked(s.m) ? 0.45 : 1}
+              />
+            );
+          })}
 
           {/* community locations = module stations */}
           {nodes.map((pt, i) => {
@@ -253,17 +299,19 @@ export default function MainMenu({
                 className={shakeIdx === i ? "map-shake" : undefined}
               >
                 <title>{`${PLACE_NAMES[i]}\nModule ${i + 1}: ${m.title}`}</title>
-                {/* the station's own building/prop, anchored beside it */}
-                <image
-                  href={STATION_DECOR[i].href}
-                  x={STATION_DECOR[i].x} y={STATION_DECOR[i].y}
-                  width={STATION_DECOR[i].w} height={STATION_DECOR[i].h}
-                  opacity={locked ? 0.55 : 1}
-                />
+                {/* the station's own buildings/props, anchored beside it */}
+                {STATION_DECOR[i].map((d, di) => (
+                  <image key={di} href={d.href} x={d.x} y={d.y} width={d.w} height={d.h}
+                    opacity={locked ? 0.55 : 1} />
+                ))}
                 {locked ? (
                   <>
                     <circle r="36" fill="#cfcfcf" stroke="#8d8d8d" strokeWidth="5" />
-                    <text y="12" textAnchor="middle" fontSize="34">🔒</text>
+                    {/* drawn padlock (no emoji) */}
+                    <path d="M -11 -6 v-6 a11 11 0 0 1 22 0 v6" fill="none" stroke="#616161" strokeWidth="5" />
+                    <rect x="-15" y="-6" width="30" height="24" rx="5" fill="#757575" />
+                    <circle cy="4" r="4" fill="#eeeeee" />
+                    <rect x="-1.8" y="4" width="3.6" height="8" rx="1.8" fill="#eeeeee" />
                   </>
                 ) : (
                   /* the badge IS the station — no extra border, extra large
@@ -271,51 +319,46 @@ export default function MainMenu({
                   <MapIcon icon={m.npc.icon} imgX={-78} imgY={-78} imgSize={156} textY={12} />
                 )}
                 {done && <text x="58" y="-58" fontSize="24">⭐</text>}
-                <text y="-88" textAnchor="middle" fontSize="15" fontWeight="900" fill="#3e2723" stroke="#b9dd8f" strokeWidth="4" paintOrder="stroke">
+                <text x={TITLE_DX[i]} y="-88" textAnchor="middle" fontSize="15" fontWeight="900" fill="#3e2723" stroke="#b9dd8f" strokeWidth="4" paintOrder="stroke">
                   {`${i + 1}. ${PLACE_NAMES[i]}`}
                 </text>
                 <text y="96" textAnchor="middle" fontSize="13" fontWeight="800" fill={locked ? "#666" : "#1b5e20"} stroke="#b9dd8f" strokeWidth="4" paintOrder="stroke">
                   {label}
                 </text>
-                {/* bouncing PLAY arrow over/under the next station */}
-                {i === cur && !done && (
-                  pt.y > 200 ? (
-                    <g className="map-bounce" style={{ pointerEvents: "none" }}>
-                      <polygon points="-6,-148 6,-148 6,-122 14,-122 0,-102 -14,-122 -6,-122"
-                        fill="#ffb300" stroke="#e65100" strokeWidth="2.5" strokeLinejoin="round" />
-                      <text y="-158" textAnchor="middle" fontSize="15" fontWeight="900" fill="#bf360c" stroke="#fff8e1" strokeWidth="4" paintOrder="stroke">PLAY!</text>
-                    </g>
-                  ) : (
-                    <g className="map-bounce" style={{ pointerEvents: "none" }}>
-                      <polygon points="-6,162 6,162 6,136 14,136 0,116 -14,136 -6,136"
-                        fill="#ffb300" stroke="#e65100" strokeWidth="2.5" strokeLinejoin="round" />
-                      <text y="184" textAnchor="middle" fontSize="15" fontWeight="900" fill="#bf360c" stroke="#fff8e1" strokeWidth="4" paintOrder="stroke">PLAY!</text>
-                    </g>
-                  )
-                )}
+                {/* (the PLAY! arrow follows the traveler on the road —
+                    see the avatar group below) */}
               </g>
             );
           })}
 
-          {/* the player walking along the barangay road */}
+          {/* the player walking along the barangay road (animated frames);
+              the PLAY! arrow bounces right above their current stop point */}
           {avatarPt && (
-            <g transform={`translate(${avatarPt.x}, ${avatarPt.y})`} className="map-bounce" style={{ pointerEvents: "none" }}>
+            <g
+              transform={`translate(${avatarPt.x}, ${avatarPt.y})`}
+              onClick={() => clickStation(cur)}
+              style={{ cursor: "pointer" }}
+            >
               <ellipse cy="8" rx="16" ry="5" fill="#00000033" />
-              <MapIcon
-                icon={progress.gender ? progress.avatar : "🎒"}
-                imgX={-20} imgY={-32} imgSize={40} textY={-2}
-              />
+              <WalkingAvatar gender={progress.gender} />
               {progress.name && (
-                <text y="-34" textAnchor="middle" fontSize="13" fontWeight="900" fill="#bf360c" stroke="#fff8e1" strokeWidth="4" paintOrder="stroke">
+                <text y="-58" textAnchor="middle" fontSize="13" fontWeight="900" fill="#bf360c" stroke="#fff8e1" strokeWidth="4" paintOrder="stroke">
                   {progress.name}
                 </text>
+              )}
+              {!MODULES.every((m) => progress.completed[m.id]) && (
+                <g className="map-bounce" style={{ pointerEvents: "none" }}>
+                  <polygon points="-6,-126 6,-126 6,-100 14,-100 0,-80 -14,-100 -6,-100"
+                    fill="#ffb300" stroke="#e65100" strokeWidth="2.5" strokeLinejoin="round" />
+                  <text y="-136" textAnchor="middle" fontSize="15" fontWeight="900" fill="#bf360c" stroke="#fff8e1" strokeWidth="4" paintOrder="stroke">PLAY!</text>
+                </g>
               )}
             </g>
           )}
         </svg>
       </Box>
 
-      <Typography sx={{ fontSize: 11, color: "#33691e", opacity: 0.85 }}>
+      <Typography sx={{ fontSize: 10.5, color: "#33691e", opacity: 0.8 }}>
         Game art: original asset packs (Barangay Masagana Math Quest)
       </Typography>
 
@@ -386,7 +429,7 @@ export default function MainMenu({
                   })}
                 </Box>
                 <Typography sx={{ mt: 1.5, fontSize: 12, color: "#8d6e63", textAlign: "center" }}>
-                  🔓 Levels unlock as you reach them — replay any level you've finished!
+                  Levels unlock as you reach them — replay any level you've finished!
                 </Typography>
               </DialogContent>
             </>

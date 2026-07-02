@@ -316,7 +316,7 @@ export default function MainMenu({
       }}
     >
       {/* title + player info */}
-      <Typography sx={{ fontWeight: 900, color: "#1b5e20", fontSize: "clamp(17px, 2.6vw, 26px)", textShadow: "0 2px 0 #fff8", textAlign: "center", display: "flex", alignItems: "center", gap: 1 }}>
+      <Typography sx={{ fontWeight: 900, color: "#1b5e20", fontSize: "clamp(15px, 2.6vw, 26px)", textShadow: "0 2px 0 #fff8", textAlign: "center", display: "flex", alignItems: "center", gap: 1, "@media (max-height: 500px)": { fontSize: 15 } }}>
         <img src="/icons/game/bahay-kubo.png" alt="" style={{ height: "1.3em" }} />
         Barangay Masagana Math Quest
       </Typography>
@@ -340,8 +340,12 @@ export default function MainMenu({
       <Box
         sx={{
           position: "relative",
-          width: "min(1320px, 97vw)",
-          maxHeight: "82vh",
+          // width is ALSO derived from the available height so the map
+          // always fits short screens (mobile landscape) — no clipping
+          width: "min(1320px, 97vw, calc((100vh - 112px) * 1.6667))",
+          "@supports (height: 100dvh)": {
+            width: "min(1320px, 97vw, calc((100dvh - 112px) * 1.6667))",
+          },
           aspectRatio: "1000 / 600",
           filter: "drop-shadow(0 12px 16px #0007)",
         }}
@@ -521,7 +525,7 @@ export default function MainMenu({
         </svg>
       </Box>
 
-      <Typography sx={{ fontSize: 10.5, color: "#33691e", opacity: 0.8 }}>
+      <Typography sx={{ fontSize: 10.5, color: "#33691e", opacity: 0.8, "@media (max-height: 500px)": { display: "none" } }}>
         Game art: original asset packs (Barangay Masagana Math Quest)
       </Typography>
 

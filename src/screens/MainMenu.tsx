@@ -25,6 +25,7 @@ import { useGame } from "../state/GameContext";
 import type { Gender } from "../state/GameContext";
 import { setMusic, sfxClick, sfxWrong } from "../sound";
 import GameIcon, { iconSources } from "../components/GameIcon";
+import FullscreenButton from "../components/FullscreenButton";
 import { UNLOCK_ALL_LEVELS } from "../dev";
 import type { Screen } from "../types";
 
@@ -546,13 +547,14 @@ export default function MainMenu({
         </Box>
       )}
 
-      {/* bottom-left: music */}
-      <Box sx={{ position: "absolute", left: 18, bottom: 16 }}>
+      {/* bottom-left: music + fullscreen */}
+      <Box sx={{ position: "absolute", left: 18, bottom: 16, display: "flex", gap: 1 }}>
         <Tooltip title="Music">
           <IconButton onClick={toggleMusic} sx={cornerBtn("#c2185b")}>
             {musicOn ? <MusicNoteRoundedIcon /> : <MusicOffRoundedIcon />}
           </IconButton>
         </Tooltip>
+        <FullscreenButton sx={cornerBtn("#5e35b1")} />
       </Box>
 
       {/* bottom-right: reset progress */}

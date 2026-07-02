@@ -28,6 +28,7 @@ import type { GameModule, Screen } from "../types";
 import { setMusic, setMuted, sfxClick } from "../sound";
 import { useGame } from "../state/GameContext";
 import GameIcon from "./GameIcon";
+import FullscreenButton from "./FullscreenButton";
 
 /* level tools: each has its own function; ruler/eraser combine with the rest */
 const TOOL_DEFS: Record<string, { icon: ReactNode; label: string; color: string }> = {
@@ -182,7 +183,7 @@ export default function GameShell(p: Props) {
         <Paper
           elevation={6}
           sx={{
-            p: { xs: 2, md: 3 },
+            p: { xs: 1.5, md: 3 },
             width: "min(720px, 94vw)",
             maxHeight: "100%",
             overflowY: "auto",
@@ -201,7 +202,7 @@ export default function GameShell(p: Props) {
           <Box sx={{ filter: "drop-shadow(0 4px 3px #0005)", display: "flex", alignItems: "flex-end" }}>
             <GameIcon icon={p.module.npc.icon} size={64} alt={p.module.npc.name} />
           </Box>
-          <Paper sx={{ px: 2, py: 1, maxWidth: 560, bgcolor: "#fffde7", border: "2px solid #5d4037", borderRadius: 2 }}>
+          <Paper sx={{ px: { xs: 1.2, md: 2 }, py: { xs: 0.6, md: 1 }, maxWidth: { xs: "58vw", md: 560 }, bgcolor: "#fffde7", border: "2px solid #5d4037", borderRadius: 2 }}>
             <Typography sx={{ fontWeight: 700, color: "#5d4037", fontSize: 13 }}>
               {p.module.npc.name}
             </Typography>
@@ -233,6 +234,7 @@ export default function GameShell(p: Props) {
             {musicOn ? <MusicNoteRoundedIcon /> : <MusicOffRoundedIcon />}
           </IconButton>
         </Tooltip>
+        <FullscreenButton sx={cornerBtn("#5e35b1")} />
       </Box>
 
       {/* bottom-right: Tools + Hint + Reset (matches reference position) */}
@@ -310,12 +312,13 @@ export default function GameShell(p: Props) {
             "&:hover": { filter: "drop-shadow(0 6px 8px #0007) brightness(1.1)" },
           }}
         >
-          <svg width="120" height="76" viewBox="0 0 120 76">
+          <Box component="svg" viewBox="0 0 120 76"
+            sx={{ width: { xs: 88, md: 120 }, height: { xs: 56, md: 76 } }}>
             <polygon
               points="0,23 66,23 66,4 116,38 66,72 66,53 0,53"
               fill="#ffeb3b" stroke="#f9a825" strokeWidth="4" strokeLinejoin="round"
             />
-          </svg>
+          </Box>
           <Typography sx={{ fontWeight: 900, color: "#fff", textShadow: "0 2px 3px #000a", mt: -1, letterSpacing: 1 }}>
             NEXT
           </Typography>
@@ -330,6 +333,7 @@ const cornerBtn = (bg: string) => ({
   color: "#fff",
   border: "3px solid #ffffffaa",
   borderRadius: 2,
+  p: { xs: 0.6, md: 1 },      // tighter on small screens
   "&:hover": { bgcolor: bg, filter: "brightness(1.15)" },
 });
 

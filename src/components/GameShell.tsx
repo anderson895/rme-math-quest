@@ -134,7 +134,8 @@ export default function GameShell(p: Props) {
         <Paper
           elevation={4}
           sx={{
-            px: 4, py: 1.2,
+            px: { xs: 2, md: 4 },
+            py: { xs: 0.6, md: 1.2 },
             minWidth: "min(560px, 82vw)",
             textAlign: "center",
             bgcolor: "#283593",
@@ -143,11 +144,11 @@ export default function GameShell(p: Props) {
             border: "3px solid #1a237e",
           }}
         >
-          <Typography sx={{ fontWeight: 800, fontSize: "clamp(14px, 2.2vw, 20px)", letterSpacing: 0.5 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: "clamp(13px, 2.2vw, 20px)", letterSpacing: 0.5 }}>
             {p.screen.banner}
           </Typography>
         </Paper>
-        <Typography sx={{ fontSize: 30, lineHeight: 1, color: "#f9a825", textShadow: "0 2px 2px #0006" }}>
+        <Typography sx={{ fontSize: 30, lineHeight: 1, color: "#f9a825", textShadow: "0 2px 2px #0006", "@media (max-height: 540px)": { display: "none" } }}>
           ▼
         </Typography>
 
@@ -156,6 +157,8 @@ export default function GameShell(p: Props) {
           <Box sx={{
             display: "flex", alignItems: "center", gap: 0.8, flexWrap: "wrap", justifyContent: "center",
             bgcolor: "#fff8e1e6", border: "2px solid #f9a825", borderRadius: 5, px: 1.5, py: 0.4, mt: 0.3,
+            // short screens (mobile landscape): free the space for the game
+            "@media (max-height: 540px)": { display: "none" },
           }}>
             {STEP_GUIDES[p.screen.type]!.map((step, i, arr) => (
               <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
@@ -196,10 +199,13 @@ export default function GameShell(p: Props) {
         </Paper>
       </Box>
 
-      {/* NPC dialogue strip + characters row (bottom, like the owls row) */}
-      <Box sx={{ zIndex: 3, px: 2, pb: 7 }}>
+      {/* NPC dialogue strip + characters row (bottom) */}
+      <Box sx={{ zIndex: 3, px: 2, pb: { xs: 6, md: 7 }, "@media (max-height: 540px)": { pb: 5.5 } }}>
         <Box sx={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 1.5 }}>
-          <Box sx={{ filter: "drop-shadow(0 4px 3px #0005)", display: "flex", alignItems: "flex-end" }}>
+          <Box sx={{
+            filter: "drop-shadow(0 4px 3px #0005)", display: "flex", alignItems: "flex-end",
+            "& img, & span": { width: { xs: 44, md: 64 }, height: { xs: 44, md: 64 } },
+          }}>
             <GameIcon icon={p.module.npc.icon} size={64} alt={p.module.npc.name} />
           </Box>
           <Paper sx={{ px: { xs: 1.2, md: 2 }, py: { xs: 0.6, md: 1 }, maxWidth: { xs: "58vw", md: 560 }, bgcolor: "#fffde7", border: "2px solid #5d4037", borderRadius: 2 }}>
@@ -209,7 +215,7 @@ export default function GameShell(p: Props) {
             <Typography sx={{ fontSize: "clamp(12px, 1.7vw, 15px)" }}>{dialogue}</Typography>
           </Paper>
           {p.module.sceneryImgs ? (
-            <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1.2, opacity: 0.97 }}>
+            <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "flex-end", gap: 1.2, opacity: 0.97 }}>
               {p.module.sceneryImgs.map((src) => (
                 <img key={src} src={src} alt="" style={{ height: "clamp(30px, 5vw, 48px)", filter: "drop-shadow(0 3px 3px #0004)" }} />
               ))}

@@ -44,7 +44,7 @@ export const MODULES: GameModule[] = [
       },
       {
         id: "m1s3", type: "cut-share", slide: "Slide 3: Share the Timber (NEW)",
-        banner: "GIVE EACH OWL AN EQUAL SHARE",
+        banner: "GIVE EACH CARPENTER AN EQUAL SHARE",
         dialogue:
           "Two carpenters will repair the footbridge. Use the ✂️ cutting tool so each carpenter gets an equal piece of this plank!",
         eaters: 2, eaterIcon: "👷🏽", itemLabel: "wooden plank",

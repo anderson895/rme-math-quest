@@ -621,11 +621,17 @@ export default function MainMenu({
 
       {/* ===== PROFILE SETUP — shows the moment the game opens ===== */}
       <Dialog open={needsProfile} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 900, bgcolor: "#2e7d32", color: "#fff", textAlign: "center" }}>
+        <DialogTitle sx={{
+          fontWeight: 900, bgcolor: "#2e7d32", color: "#fff", textAlign: "center",
+          fontSize: { xs: 15, sm: 18, md: 20 },
+          py: { xs: 1, md: 1.5 },
+        }}>
           Maligayang pagdating sa Barangay Masagana!
         </DialogTitle>
         <DialogContent sx={{ bgcolor: "#fffde7", textAlign: "center" }}>
-          <Typography sx={{ my: 1.5, fontWeight: 800 }}>Set up your player profile:</Typography>
+          <Typography sx={{ my: { xs: 1, md: 1.5 }, fontWeight: 800, fontSize: { xs: 14, md: 16 } }}>
+            Set up your player profile:
+          </Typography>
           <TextField
             label="Student Name"
             placeholder="Type your name…"

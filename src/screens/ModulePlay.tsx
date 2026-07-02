@@ -3,6 +3,7 @@ import { MODULES } from "../data/modules";
 import { useGame } from "../state/GameContext";
 import GameShell from "../components/GameShell";
 import DialogueScene from "../components/mechanics/DialogueScene";
+import CutShare from "../components/mechanics/CutShare";
 import NumberLinePlot from "../components/mechanics/NumberLinePlot";
 import ModelShade from "../components/mechanics/ModelShade";
 import MCQ from "../components/mechanics/MCQ";
@@ -32,8 +33,10 @@ export default function ModulePlay({
   );
   const [solved, setSolved] = useState(false);
   const [resetKey, setResetKey] = useState(0);
+  const [cutterOpen, setCutterOpen] = useState(false);
 
   const screen = module.screens[idx];
+  const isCutShare = screen.type === "cut-share";
 
   const handleSolved = () => {
     if (solved) return;
@@ -56,6 +59,7 @@ export default function ModulePlay({
     setIdx(next);
     setSolved(false);
     setResetKey(0);
+    setCutterOpen(false);
   };
 
   // dialogue screens complete via their own button and advance directly
@@ -74,14 +78,24 @@ export default function ModulePlay({
       screenNumber={idx + 1}
       screenCount={module.screens.length}
       coins={progress.coins}
-      avatar={progress.avatar}
       solved={solved && screen.type !== "dialogue"}
       hint={screen.type === "equation" ? screen.hint : undefined}
+      tool={isCutShare ? "scissors" : undefined}
+      toolActive={cutterOpen}
+      toolAttention={isCutShare && !cutterOpen && !solved}
+      onTool={() => setCutterOpen((o) => !o)}
       onHome={onExit}
-      onReset={() => { setSolved(false); setResetKey((k) => k + 1); }}
+      onReset={() => { setSolved(false); setResetKey((k) => k + 1); setCutterOpen(false); }}
       onNext={advance}
     >
-      <Mechanic key={`${screen.id}-${resetKey}`} screen={screen} onSolved={handleSolved} onDialogueDone={dialogueDone} />
+      <Mechanic
+        key={`${screen.id}-${resetKey}`}
+        screen={screen}
+        onSolved={handleSolved}
+        onDialogueDone={dialogueDone}
+        cutterOpen={cutterOpen}
+        closeCutter={() => setCutterOpen(false)}
+      />
     </GameShell>
   );
 }
@@ -90,13 +104,18 @@ function Mechanic({
   screen,
   onSolved,
   onDialogueDone,
+  cutterOpen,
+  closeCutter,
 }: {
   screen: Screen;
   onSolved: (perfect: boolean) => void;
   onDialogueDone: () => void;
+  cutterOpen: boolean;
+  closeCutter: () => void;
 }) {
   switch (screen.type) {
     case "dialogue":    return <DialogueScene screen={screen} onDone={onDialogueDone} />;
+    case "cut-share":   return <CutShare screen={screen} cutterOpen={cutterOpen} closeCutter={closeCutter} onSolved={onSolved} />;
     case "numberline":  return <NumberLinePlot screen={screen} onSolved={onSolved} />;
     case "model-shade": return <ModelShade screen={screen} onSolved={onSolved} />;
     case "mcq":         return <MCQ screen={screen} onSolved={onSolved} />;

@@ -45,14 +45,12 @@ export const MODULES: GameModule[] = [
         rme: "Guidance Principle", reward: 50,
       },
       {
-        id: "m1s3", type: "mcq", slide: "Slide 3: Warm-Up Patch (NEW)",
-        banner: "WHAT FRACTION OF THE ROAD IS PAVED?",
-        dialogue: "Before we begin, tell me: what fraction of this road patch is already paved?",
-        question: "The shaded part of the road shows…",
-        questionBar: { shaded: 1, parts: 2 },
-        choices: [{ frac: { n: 1, d: 2 } }, { frac: { n: 1, d: 3 } }, { frac: { n: 2, d: 3 } }, { frac: { n: 1, d: 4 } }],
-        answer: 0,
-        rme: "Guidance Principle", reward: 10,
+        id: "m1s3", type: "cut-share", slide: "Slide 3: Share the Timber (NEW)",
+        banner: "GIVE EACH OWL AN EQUAL SHARE",
+        dialogue:
+          "Two carpenter owls will repair the footbridge. Use the ✂️ cutting tool so each owl gets an equal piece of this plank!",
+        eaters: 2, eaterIcon: "🦉", itemLabel: "wooden plank",
+        rme: "Activity Principle", reward: 15,
       },
       {
         id: "m1s4", type: "numberline", slide: "Slide 4: Fraction Trail Map",
@@ -93,18 +91,12 @@ export const MODULES: GameModule[] = [
         rme: "Level Principle", reward: 20,
       },
       {
-        id: "m1s9", type: "mcq", slide: "Slide 9: Read the Farm Plans (NEW)",
-        banner: "WHICH PLAN SHOWS 3/5?",
-        dialogue: "The engineers sent farm plans. Only one shows exactly three-fifths shaded — which one?",
-        question: "Pick the model that shows 3/5.",
-        choices: [
-          { bar: { shaded: 2, parts: 5 } },
-          { bar: { shaded: 3, parts: 5 } },
-          { bar: { shaded: 3, parts: 4 } },
-          { bar: { shaded: 4, parts: 5 } },
-        ],
-        answer: 1,
-        rme: "Level Principle", reward: 15,
+        id: "m1s9", type: "cut-share", slide: "Slide 9: Merienda Time (NEW)",
+        banner: "SHARE THE BIBINGKA FAIRLY",
+        dialogue:
+          "Merienda break! Four hardworking squirrels helped carry the tools. Cut the bibingka so everyone gets a fair share — no crumbs of argument!",
+        eaters: 4, eaterIcon: "🐿️", itemLabel: "bibingka rice cake",
+        rme: "Level Principle", reward: 20,
       },
       {
         id: "m1s10", type: "order", slide: "Slide 10: Compare Farm Lots",
@@ -180,7 +172,7 @@ export const MODULES: GameModule[] = [
         id: "m1s15", type: "dialogue", slide: "Slide 15: Reward Screen",
         banner: "🎉 CONGRATULATIONS, MASTER RANGER! 🎉",
         dialogue:
-          "Congratulations! The roads are restored, and the festival can now begin! You've earned the Master Ranger Badge — Module 2 is now unlocked!",
+          "Congratulations, {name}! The roads are restored, and the festival can now begin! You've earned the Master Ranger Badge — Module 2 is now unlocked!",
         art: "🎆🏮🎊", buttonLabel: "Claim Rewards",
         rme: "Reality Principle", reward: 50,
       },
@@ -209,7 +201,7 @@ export const MODULES: GameModule[] = [
         id: "m2s1", type: "dialogue", slide: "Slide 1: Title Screen",
         banner: "THE HONEST ASSISTANT",
         dialogue:
-          "Mabuhay! Welcome to the store. We have a huge shipment arriving, and I need a sharp assistant to help sort inventory using fractions!",
+          "Mabuhay, {name}! Welcome to the store. We have a huge shipment arriving, and I need a sharp assistant to help sort inventory using fractions!",
         art: "🏪🧃🍬", buttonLabel: "Apply as Assistant",
         rme: "Reality Principle", reward: 0,
       },
@@ -360,7 +352,7 @@ export const MODULES: GameModule[] = [
         id: "m2s15", type: "dialogue", slide: "Slide 15: Reward Screen",
         banner: "🏅 CERTIFIED HONEST ASSISTANT! 🏅",
         dialogue:
-          "Superb work! Our inventory is flawless, and the ledger balances perfectly. Here is your well-earned share — Module 3 is unlocked!",
+          "Superb work, {name}! Our inventory is flawless, and the ledger balances perfectly. Here is your well-earned share — Module 3 is unlocked!",
         art: "💰🏅⭐", buttonLabel: "Claim Rewards",
         rme: "Reality Principle", reward: 50,
       },
@@ -389,7 +381,7 @@ export const MODULES: GameModule[] = [
         id: "m3s1", type: "dialogue", slide: "Slide 1: Title Screen",
         banner: "FIESTA SA NAYON",
         dialogue:
-          "Maligayang Fiesta, partner! We are still setting up food stations and hanging decorations. Let's use our fraction skills to coordinate!",
+          "Maligayang Fiesta, {name}! We are still setting up food stations and hanging decorations. Let's use our fraction skills to coordinate!",
         art: "🎪🎏🏮", buttonLabel: "Join the Committee",
         rme: "Reality Principle", reward: 0,
       },
@@ -554,7 +546,7 @@ export const MODULES: GameModule[] = [
         id: "m3s15", type: "dialogue", slide: "Slide 15: Reward Screen",
         banner: "🏆 MASTER MATH COORDINATOR! 🏆",
         dialogue:
-          "We did it! Together with Tatay Ben and Ate Lalay, the whole barangay thanks you. You are our Master Math Coordinator!",
+          "We did it! Together with Tatay Ben and Ate Lalay, the whole barangay thanks you, {name}. You are our Master Math Coordinator!",
         art: "🏆👨🏽‍🌾👩🏽‍💼", buttonLabel: "View Final Score",
         rme: "Reality Principle", reward: 100,
       },

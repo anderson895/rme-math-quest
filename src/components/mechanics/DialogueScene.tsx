@@ -1,11 +1,10 @@
-import { Box, Button, Typography, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { Box, Button, TextField, Typography, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { useState } from "react";
 import type { DialogueScreen } from "../../types";
 import MiniBar from "../MiniBar";
 import { useGame } from "../../state/GameContext";
+import type { Gender } from "../../state/GameContext";
 import { sfxClick } from "../../sound";
-
-const AVATARS = ["🧒🏽", "👧🏽", "👦🏽", "🧑🏽‍🦱"];
 
 /** Title / briefing / feedback / reward slides — narrative screens. */
 export default function DialogueScene({
@@ -15,8 +14,11 @@ export default function DialogueScene({
   screen: DialogueScreen;
   onDone: () => void;
 }) {
-  const { progress, setAvatar } = useGame();
-  const [picked, setPicked] = useState(progress.avatar);
+  const { progress, setProfile } = useGame();
+  const [name, setName] = useState(progress.name);
+  const [gender, setGender] = useState<Gender>(progress.gender);
+
+  const profileIncomplete = !!screen.avatarSelect && (name.trim().length === 0 || gender === "");
 
   return (
     <Box sx={{ textAlign: "center", display: "flex", flexDirection: "column", gap: 2, alignItems: "center" }}>
@@ -29,32 +31,51 @@ export default function DialogueScene({
       {screen.demo === "lcd" && <LcdDemo />}
 
       {screen.avatarSelect && (
-        <Box>
-          <Typography sx={{ fontWeight: 700, mb: 1 }}>Choose your avatar:</Typography>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, alignItems: "center", width: "min(340px, 80vw)" }}>
+          <Typography sx={{ fontWeight: 800 }}>👤 Set up your player profile:</Typography>
+          <TextField
+            label="Student Name"
+            placeholder="Type your name…"
+            value={name}
+            onChange={(e) => setName(e.target.value.slice(0, 24))}
+            fullWidth
+            sx={{ bgcolor: "#fff", borderRadius: 1 }}
+            slotProps={{ htmlInput: { style: { textAlign: "center", fontWeight: 800 } } }}
+          />
           <ToggleButtonGroup
             exclusive
-            value={picked}
-            onChange={(_, v) => {
+            value={gender}
+            onChange={(_, v: Gender | null) => {
               if (v) {
                 sfxClick();
-                setPicked(v);
-                setAvatar(v);
+                setGender(v);
               }
             }}
           >
-            {AVATARS.map((a) => (
-              <ToggleButton key={a} value={a} sx={{ fontSize: 34, px: 2 }}>
-                {a}
-              </ToggleButton>
-            ))}
+            <ToggleButton value="male" sx={{ px: 3, gap: 1, fontWeight: 800 }}>
+              <Typography sx={{ fontSize: 30 }}>👦🏽</Typography> Male
+            </ToggleButton>
+            <ToggleButton value="female" sx={{ px: 3, gap: 1, fontWeight: 800 }}>
+              <Typography sx={{ fontSize: 30 }}>👧🏽</Typography> Female
+            </ToggleButton>
           </ToggleButtonGroup>
+          {profileIncomplete && (
+            <Typography sx={{ fontSize: 12.5, color: "#c62828", fontWeight: 700 }}>
+              Enter your name and choose your gender to start.
+            </Typography>
+          )}
         </Box>
       )}
 
       <Button
         variant="contained"
         size="large"
-        onClick={() => { sfxClick(); onDone(); }}
+        disabled={profileIncomplete}
+        onClick={() => {
+          sfxClick();
+          if (screen.avatarSelect) setProfile(name, gender);
+          onDone();
+        }}
         sx={{ fontWeight: 800, borderRadius: 3, px: 5, py: 1.2, fontSize: 18 }}
       >
         {screen.buttonLabel}

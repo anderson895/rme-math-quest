@@ -4,9 +4,13 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
+export type Gender = "" | "male" | "female";
+
 export interface Progress {
   coins: number;
-  avatar: string;
+  name: string;                           // student name (profile setup)
+  gender: Gender;
+  avatar: string;                         // derived from gender
   unlocked: number;                       // how many modules are playable
   screenIndex: Record<string, number>;    // moduleId -> next screen to play
   completed: Record<string, boolean>;     // moduleId -> finished flag
@@ -14,6 +18,8 @@ export interface Progress {
 
 const DEFAULT: Progress = {
   coins: 0,
+  name: "",
+  gender: "",
   avatar: "🧒🏽",
   unlocked: 1,
   screenIndex: {},
@@ -25,7 +31,7 @@ const KEY = "rme-math-quest-progress";
 interface GameCtx {
   progress: Progress;
   addCoins: (n: number) => void;
-  setAvatar: (a: string) => void;
+  setProfile: (name: string, gender: Gender) => void;
   setScreenIndex: (moduleId: string, idx: number) => void;
   completeModule: (moduleId: string, moduleCount: number) => void;
   resetProgress: () => void;
@@ -51,7 +57,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     () => ({
       progress,
       addCoins: (n) => setProgress((p) => ({ ...p, coins: p.coins + n })),
-      setAvatar: (a) => setProgress((p) => ({ ...p, avatar: a })),
+      setProfile: (name, gender) =>
+        setProgress((p) => ({
+          ...p,
+          name: name.trim(),
+          gender,
+          avatar: gender === "male" ? "👦🏽" : gender === "female" ? "👧🏽" : "🧒🏽",
+        })),
       setScreenIndex: (id, idx) =>
         setProgress((p) => ({ ...p, screenIndex: { ...p.screenIndex, [id]: idx } })),
       completeModule: (id, moduleCount) =>

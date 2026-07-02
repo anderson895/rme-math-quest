@@ -42,6 +42,13 @@ export interface NumberLineScreen extends BaseScreen {
   targets: number[];      // numerators of the fraction markers to place
 }
 
+export interface CutShareScreen extends BaseScreen {
+  type: "cut-share";
+  eaters: number;      // friends needing equal shares (= target denominator)
+  eaterIcon: string;   // temporary emoji for the characters
+  itemLabel: string;   // what is being cut, e.g. "wooden plank"
+}
+
 export interface ModelShadeScreen extends BaseScreen {
   type: "model-shade";
   frac: Frac;             // fraction to represent
@@ -108,6 +115,7 @@ export interface BossScreen extends BaseScreen {
 export type Screen =
   | DialogueScreen
   | NumberLineScreen
+  | CutShareScreen
   | ModelShadeScreen
   | MCQScreen
   | OrderScreen

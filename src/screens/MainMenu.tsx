@@ -92,7 +92,7 @@ const MAP_POIS: Poi[] = [
     text: "Dito nakatira si Bunso — dito nagsisimula ang iyong math adventure sa barangay!",
   },
   {
-    href: "/icons/game/festival-stall.png", x: 285, y: 36, w: 105, h: 84,
+    href: "/icons/game/festival-stall.png", x: 775, y: 60, w: 105, h: 84,
     title: "Harvest Festival",
     text: "Ang gantimpala ng masipag na pag-aaral sa Bukid: masaganang ani at masayang pagdiriwang!",
   },
@@ -168,6 +168,35 @@ interface Stop extends Pt { m: number; k: number }  // module index, lesson numb
 /* remembers where the traveler stood before the last lesson so we can
    animate the walk to the new stop when the map re-opens */
 let lastAvatarF: number | null = null;
+
+/* NPCs with sliced idle-animation frames (tools/split_idle.py) */
+const IDLE_SETS: Record<string, { base: string; count: number }> = {
+  "👨🏽‍🌾": { base: "/icons/game/idle/tatay-ben", count: 4 },
+  "👩🏽‍💼": { base: "/icons/game/idle/manang-lalay", count: 4 },
+  "🕺🏽": { base: "/icons/game/idle/kuya-onyok", count: 4 },
+};
+
+/** Station NPC — plays its idle animation if one exists, otherwise
+    falls back to the static character image. */
+function IdleNpc({ icon, cx, cy, s }: { icon: string; cx: number; cy: number; s: number }) {
+  const set = IDLE_SETS[icon];
+  const [f, setF] = useState(0);
+  useEffect(() => {
+    if (!set) return;
+    const t = setInterval(() => setF((v) => v + 1), 360);
+    return () => clearInterval(t);
+  }, [set]);
+  if (!set) {
+    return <MapIcon className="poi" icon={icon} imgX={cx - s / 2} imgY={cy - s / 2} imgSize={s} textY={12} />;
+  }
+  return (
+    <image
+      className="poi"
+      href={`${set.base}-${f % set.count}.png`}
+      x={cx - s / 2} y={cy - s / 2} width={s} height={s}
+    />
+  );
+}
 
 /* usable walk frames per character (boy frame 1 was dropped —
    inconsistent art: no basket) */
@@ -410,8 +439,12 @@ export default function MainMenu({
 
 
           {/* barangay decorations — each anchored where it makes sense */}
-          {/* banderitas hang on the top-right frame, away from station 1's title */}
-          <image href="/icons/game/banderitas.png" x={540} y={8} width={420} height={44} preserveAspectRatio="none" />
+          {/* banderitas repeat edge-to-edge, tiles OVERLAPPING so the
+              string connects seamlessly across the whole map */}
+          {[10, 250, 490, 730].map((bx) => (
+            <image key={bx} href="/icons/game/banderitas.png"
+              x={bx} y={6} width={260} height={42} preserveAspectRatio="none" />
+          ))}
 
           {/* clickable landmarks: hover pop + info card (church now at the center) */}
           {MAP_POIS.map((p) => (
@@ -430,7 +463,7 @@ export default function MainMenu({
           <image href="/icons/game/tree.png" x={398} y={40} width={50} height={70} />
           <image href="/icons/game/tree.png" x={100} y={486} width={54} height={75} />
           <image href="/icons/game/tree.png" x={545} y={372} width={52} height={72} />
-          <image href="/icons/game/tree.png" x={846} y={76} width={52} height={72} />
+          <image href="/icons/game/tree.png" x={330} y={60} width={52} height={72} />
           <image href="/icons/game/tree.png" x={688} y={498} width={52} height={72} />
           <image href="/icons/game/tree.png" x={215} y={64} width={44} height={62} />
           <image href="/icons/game/tree.png" x={495} y={418} width={50} height={70} />
@@ -528,10 +561,9 @@ export default function MainMenu({
                     <rect x="-1.8" y="4" width="3.6" height="8" rx="1.8" fill="#eeeeee" />
                   </g>
                 ) : (
-                  /* the NPC stands beside the road, off the stop points */
-                  <MapIcon className="poi" icon={m.npc.icon}
-                    imgX={CHAR[i].x - CHAR[i].s / 2} imgY={CHAR[i].y - CHAR[i].s / 2}
-                    imgSize={CHAR[i].s} textY={12} />
+                  /* the NPC stands beside the road, off the stop points —
+                     with an idle animation when frames are available */
+                  <IdleNpc icon={m.npc.icon} cx={CHAR[i].x} cy={CHAR[i].y} s={CHAR[i].s} />
                 )}
                 {done && <text x={CHAR[i].x + 42} y={CHAR[i].y - 46} fontSize="24">⭐</text>}
                 <text x={LABEL_OFF[i].x} y={LABEL_OFF[i].y} textAnchor="middle" fontSize="13" fontWeight="800" fill={locked ? "#666" : "#1b5e20"} stroke="#b9dd8f" strokeWidth="4" paintOrder="stroke">

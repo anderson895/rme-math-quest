@@ -17,6 +17,17 @@ export type RMEPrinciple =
   | "Interactivity Principle"
   | "Intertwinement Principle";
 
+/* celebration scene that plays right AFTER a level is solved, as a
+   continuation of the level's animation (feedback / story beat) —
+   its button then sends the traveler walking to the next stop */
+export interface Outro {
+  banner: string;
+  dialogue: string;
+  art?: string;           // big emoji scene art
+  buttonLabel: string;
+  reward?: number;        // bonus coins granted when the outro closes
+}
+
 interface BaseScreen {
   id: string;
   slide: string;          // storyboard slide title, e.g. "Slide 3: Fraction Trail Map"
@@ -24,6 +35,7 @@ interface BaseScreen {
   dialogue: string;       // NPC speech bubble text
   rme: RMEPrinciple;
   reward: number;         // coins granted on completion
+  outro?: Outro;          // feedback scene shown after solving, before the map walk
 }
 
 /* ---------- screen variants (game mechanics) ---------- */
@@ -165,5 +177,5 @@ export interface GameModule {
   scenery: string;        // bottom decorative row (emoji fallback)
   sceneryImgs?: string[]; // image sprites for the bottom row (from asset packs)
   themeColor: string;
-  screens: Screen[];      // exactly 15 per the revised storyboard
+  screens: Screen[];      // exactly 16: 1 mission briefing + 15 playable levels
 }

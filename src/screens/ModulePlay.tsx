@@ -16,7 +16,7 @@ import BalanceScale from "../components/mechanics/BalanceScale";
 import SimplifyStation from "../components/mechanics/SimplifyStation";
 import EquationBuilder from "../components/mechanics/EquationBuilder";
 import BossChallenge from "../components/mechanics/BossChallenge";
-import type { Screen } from "../types";
+import type { DialogueScreen as DialogueScreenType, Screen } from "../types";
 import { sfxCoin } from "../sound";
 
 /* which tools each mechanic gets; the first one is the primary tool
@@ -50,9 +50,29 @@ export default function ModulePlay({
   const [activeTools, setActiveTools] = useState<string[]>([]);
   const [eraseSignal, setEraseSignal] = useState(0);
   const [toolUsed, setToolUsed] = useState(false);
+  // the level's celebration scene — plays after solving, as a
+  // continuation of the level, before walking on the map
+  const [inOutro, setInOutro] = useState(false);
 
   const screen = module.screens[idx];
   const tools = TOOLSETS[screen.type];
+
+  /* the outro rendered as a narrative dialogue screen (same look as
+     the storyboard feedback slides) */
+  const outroScreen: DialogueScreenType | null =
+    inOutro && screen.outro
+      ? {
+          id: `${screen.id}-outro`,
+          slide: screen.slide,
+          type: "dialogue",
+          banner: screen.outro.banner,
+          dialogue: screen.outro.dialogue,
+          art: screen.outro.art,
+          buttonLabel: screen.outro.buttonLabel,
+          rme: screen.rme,
+          reward: screen.outro.reward ?? 0,
+        }
+      : null;
 
   const clearToolState = () => {
     setActiveTools([]);
@@ -85,17 +105,41 @@ export default function ModulePlay({
       onExit();
       return;
     }
-    setScreenIndex(module.id, next);
+    // never rewind the frontier — finishing a REPLAYED old level must
+    // not move the traveler backwards or re-enable/disable stop points
+    setScreenIndex(module.id, Math.max(progress.screenIndex[module.id] ?? 0, next));
     // back to the map — the traveler walks to the next stop point.
     // (the briefing flows straight into its first lesson instead)
     if (screen.type === "dialogue" && idx === 0) {
       setIdx(next);
       setSolved(false);
       setResetKey(0);
+      setInOutro(false);
       clearToolState();
       return;
     }
     onExit();
+  };
+
+  // NEXT after solving: play the level's outro celebration first (a
+  // continuation of the level's animation), THEN walk on the map
+  const handleNext = () => {
+    if (screen.outro && !inOutro) {
+      setInOutro(true);
+      return;
+    }
+    advance();
+  };
+
+  // the outro's own button — award its bonus, then really advance
+  const outroDone = () => {
+    const bonus = screen.outro?.reward ?? 0;
+    if (bonus > 0) {
+      sfxCoin();
+      addCoins(bonus);
+    }
+    setInOutro(false);
+    advance();
   };
 
   // dialogue screens complete via their own button and advance directly
@@ -106,6 +150,26 @@ export default function ModulePlay({
     }
     advance();
   };
+
+  /* outro phase — the celebration scene replaces the workspace; its
+     button (not the NEXT arrow) continues the journey */
+  if (outroScreen) {
+    return (
+      <GameShell
+        module={module}
+        screen={outroScreen}
+        screenNumber={idx + 1}
+        screenCount={module.screens.length}
+        coins={progress.coins}
+        solved={false}
+        onHome={onExit}
+        onReset={() => { setInOutro(false); setSolved(false); setResetKey((k) => k + 1); clearToolState(); }}
+        onNext={outroDone}
+      >
+        <DialogueScene screen={outroScreen} onDone={outroDone} />
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
@@ -122,7 +186,7 @@ export default function ModulePlay({
       onTool={handleTool}
       onHome={onExit}
       onReset={() => { setSolved(false); setResetKey((k) => k + 1); clearToolState(); }}
-      onNext={advance}
+      onNext={handleNext}
     >
       <Mechanic
         key={`${screen.id}-${resetKey}`}

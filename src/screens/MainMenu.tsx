@@ -11,7 +11,7 @@
    reached screen can be replayed.
    ============================================================ */
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
   Box, Chip, Dialog, DialogContent, DialogTitle, IconButton, Tooltip, Typography, Button,
   TextField, ToggleButton, ToggleButtonGroup, useMediaQuery,
@@ -60,15 +60,15 @@ const lessonsDoneOf = (screenIndex: number, completed: boolean) =>
 
 /* where each community location sits along the barangay road —
    EQUALLY spaced by arc length so every lesson stopover is the
-   same walking distance (~46px apart, computed by tools/path_points.mjs) */
+   same walking distance (~103px apart, computed by tools/path_points_v2.mjs) */
 const NODE_F = [0.34, 0.67, 1.0];
 const TRAIL_START_F = 0.02;
 
 /* per-station offset for the status label ("Start here!" etc.) */
 const LABEL_OFF = [
   { x: 85, y: 52 },
-  { x: 80, y: -95 },
-  { x: 42, y: 122 },   // right under Kuya Onyok's feet
+  { x: 80, y: -145 },
+  { x: -100, y: -108 },  // above Kuya Onyok, left of the road's final climb
 ];
 
 /* NPC characters stand BESIDE the road (offset from their node) so
@@ -76,8 +76,8 @@ const LABEL_OFF = [
    as the module's final stop */
 const CHAR = [
   { x: 85, y: -12, s: 110 },
-  { x: 80, y: -30, s: 110 },
-  { x: 42, y: 70, s: 100 },
+  { x: 80, y: -75, s: 110 },
+  { x: -100, y: -45, s: 100 },
 ];
 
 /* clickable map objects: hover pop + info card when tapped */
@@ -87,43 +87,141 @@ interface Poi {
 }
 const MAP_POIS: Poi[] = [
   {
-    href: "/icons/game/bahay-kubo.png", x: 82, y: 58, w: 118, h: 108,
+    href: "/icons/game/bahay-kubo.png", x: 85, y: 48, w: 140, h: 128,
     title: "Bahay Kubo ni Bunso",
     text: "Dito nakatira si Bunso — dito nagsisimula ang iyong math adventure sa barangay!",
   },
   {
-    href: "/icons/game/festival-stall.png", x: 775, y: 60, w: 105, h: 84,
+    href: "/icons/game/festival-stall.png", x: 1755, y: 205, w: 128, h: 102,
     title: "Harvest Festival",
     text: "Ang gantimpala ng masipag na pag-aaral sa Bukid: masaganang ani at masayang pagdiriwang!",
   },
   {
-    href: "/icons/game/church.png", x: 230, y: 195, w: 165, h: 195,
+    href: "/icons/game/church.png", x: 970, y: 670, w: 195, h: 230,
     title: "Simbahan ng Barangay",
     text: "Sentro ng pamayanan. Tuwing pista, sinasabitan ito ng makukulay na parol.",
   },
   {
-    href: "/icons/game/flower-box.png", x: 300, y: 380, w: 52, h: 32,
+    href: "/icons/game/flower-box.png", x: 1075, y: 915, w: 60, h: 38,
     title: "Hardin ng Barangay",
     text: "Mga bulaklak na alaga ng mga kabataan — pinapaganda ang paligid ng simbahan.",
   },
   {
-    href: "/icons/game/cart.png", x: 590, y: 210, w: 110, h: 76,
+    href: "/icons/game/cart.png", x: 1095, y: 450, w: 128, h: 88,
     title: "Kariton ng Bukid",
     text: "Hila ng kalabaw — dito isinasakay ang ani mula sa bukid papunta sa palengke.",
   },
   {
-    href: "/icons/game/trophy.png", x: 935, y: 322, w: 36, h: 40,
+    href: "/icons/game/trophy.png", x: 1908, y: 630, w: 40, h: 44,
     title: "Tropeo ng Barangay",
     text: "Para sa magiging Master Math Coordinator — tapusin ang lahat ng 45 aralin!",
   },
   {
-    href: "/icons/game/road-flag.png", x: 932, y: 268, w: 40, h: 52,
+    href: "/icons/game/road-flag.png", x: 1902, y: 565, w: 44, h: 57,
     title: "Finish Flag",
     text: "Dito magtatapos ang paglalakbay — 45 aralin ang tatawirin mo para marating ito. Kaya mo 'yan!",
   },
 ];
 
 const PLACE_NAMES = ["Bukid ni Tatay Ben", "Tindahan ni Manang Lalay", "Plaza ng Barangay"];
+
+/* scenery scattered around the barangay — every object is clickable
+   and shows its own description card (same as the landmarks) */
+const DECOR: Poi[] = [
+  // palayan (rice fields) near the Bukid
+  {
+    href: "/icons/game/palay.png", x: 1280, y: 330, w: 60, h: 80,
+    title: "Palayan ni Tatay Ben",
+    text: "Hitik sa butil ang mga palay — malapit na ang anihan para sa Harvest Festival!",
+  },
+  {
+    href: "/icons/game/palay.png", x: 1360, y: 385, w: 52, h: 70,
+    title: "Palayan ni Tatay Ben",
+    text: "Bawat butil ng palay ay bunga ng tiyaga — tulad ng pag-aaral ng math!",
+  },
+  {
+    href: "/icons/game/palay.png", x: 1305, y: 430, w: 48, h: 64,
+    title: "Palayan ni Tatay Ben",
+    text: "Pantay-pantay ang pagkakahati ng mga pitak ng palayan — parang fractions!",
+  },
+  {
+    href: "/icons/game/signpost.png", x: 1180, y: 280, w: 50, h: 66,
+    title: "Karatula ng Bukid",
+    text: "Itinuturo ang daan papunta sa Bukid ni Tatay Ben — sundan lang ang kalsada!",
+  },
+  // the start village (near Bahay Kubo ni Bunso)
+  {
+    href: "/icons/game/bahay-kubo.png", x: 300, y: 300, w: 115, h: 105,
+    title: "Bahay ng Kapitbahay",
+    text: "Masayang pamilya ang nakatira dito — tuwing gabi, sabay-sabay silang nag-aaral ng math!",
+  },
+  {
+    href: "/icons/game/flower-box.png", x: 255, y: 415, w: 52, h: 34,
+    title: "Paso ng Bulaklak",
+    text: "Alaga ng mga bata sa village — pinapaganda ang harapan ng mga bahay.",
+  },
+  // open field at the center
+  {
+    href: "/icons/game/plants.png", x: 860, y: 420, w: 56, h: 40,
+    title: "Halamanan sa Parang",
+    text: "Mga gulay na itinanim ng samahan ng kabataan — sariwa at masustansya!",
+  },
+  {
+    href: "/icons/game/basket.png", x: 700, y: 545, w: 38, h: 32,
+    title: "Basket ng Ani",
+    text: "May lamang sariwang ani — naiwan yata ng magsasakang nagpahinga sa lilim.",
+  },
+  // left countryside, on the way to the Tindahan
+  {
+    href: "/icons/game/palay.png", x: 110, y: 690, w: 56, h: 74,
+    title: "Palay sa Gilid ng Daan",
+    text: "Pinatutuyo sa araw ang ani bago dalhin sa tindahan ni Manang Lalay.",
+  },
+  {
+    href: "/icons/game/basket.png", x: 255, y: 1075, w: 40, h: 34,
+    title: "Basket ng Mangingisda",
+    text: "Ginagamit pag-uwi ng huli mula sa maliit na palaisdaan ng barangay.",
+  },
+  // around the church grounds
+  {
+    href: "/icons/game/flower-box.png", x: 900, y: 855, w: 55, h: 34,
+    title: "Hardin sa Simbahan",
+    text: "Mga bulaklak na handog ng mga deboto tuwing pista ng barangay.",
+  },
+  {
+    href: "/icons/game/plants.png", x: 1190, y: 845, w: 52, h: 38,
+    title: "Halamang Gamot",
+    text: "Alaga ng barangay health center — lunas sa ubo't sipon ng mga bata.",
+  },
+  {
+    href: "/icons/game/signpost.png", x: 700, y: 940, w: 48, h: 64,
+    title: "Karatula ng Krosing",
+    text: "Dito naghihiwalay ang daan — dumiretso para sa Tindahan at sa Plaza!",
+  },
+  // right countryside, on the way to the Plaza
+  {
+    href: "/icons/game/palay.png", x: 1600, y: 760, w: 56, h: 74,
+    title: "Palayan sa Silangan",
+    text: "Ang pinakamalawak na palayan ng barangay — kasama sa susunod na anihan.",
+  },
+  {
+    href: "/icons/game/plants.png", x: 1450, y: 820, w: 52, h: 38,
+    title: "Halamanan sa Plaza",
+    text: "Inihahanda bilang palamuti sa darating na fiesta sa nayon!",
+  },
+];
+
+/* barangay trees — clickable like every other map object */
+const TREES: [number, number, number, number][] = [
+  [42, 140, 60, 84], [330, 52, 54, 76], [740, 36, 56, 78], [1050, 60, 52, 72],
+  [1460, 70, 54, 76], [1830, 110, 52, 72], [95, 560, 56, 78], [250, 700, 50, 70],
+  [180, 1040, 56, 78], [560, 420, 56, 78], [890, 300, 50, 70], [1240, 290, 52, 72],
+  [1530, 690, 52, 72], [690, 860, 54, 76], [1690, 1040, 54, 76],
+];
+const TREE_INFO = {
+  title: "Punong-kahoy ng Barangay",
+  text: "Nagbibigay-lilim sa mga naglalakbay — tahanan din ng mga maya at kuwago!",
+};
 
 /* buildings/props rendered right BESIDE their station (offsets are
    relative to the station node, so they always stay together) */
@@ -133,26 +231,29 @@ const STATION_DECOR: { href: string; x: number; y: number; w: number; h: number 
   // 2. Tindahan — the sari-sari store on Manang Lalay's LEFT side,
   // with a hanging parol, its timbangan, and a basket in front
   [
-    { href: "/icons/game/sari-sari-store.png", x: -150, y: -76, w: 92, h: 104 },
-    { href: "/icons/game/parol.png",           x: -160, y: -68, w: 24, h: 44 },
-    { href: "/icons/game/scale.png",           x: -112, y: 30,  w: 34, h: 44 },
-    { href: "/icons/game/basket.png",          x: -66,  y: 36,  w: 30, h: 26 },
+    { href: "/icons/game/sari-sari-store.png", x: -230, y: -76, w: 92, h: 104 },
+    { href: "/icons/game/parol.png",           x: -240, y: -68, w: 24, h: 44 },
+    { href: "/icons/game/scale.png",           x: -180, y: 30,  w: 34, h: 44 },
+    { href: "/icons/game/basket.png",          x: -134, y: 36,  w: 30, h: 26 },
   ],
-  // 3. Plaza — the whole fiesta grounds on the RIGHT side of the road,
-  // grouped together below Kuya Onyok: stage (with its wooden sign),
-  // balloons beside it, plants and a gift around it
+  // 3. Plaza — the whole fiesta grounds on the LEFT side of the road's
+  // final climb, grouped together below Kuya Onyok: stage (with its
+  // wooden sign), balloons beside it, plants and a gift around it
   [
-    { href: "/icons/game/stage.png",           x: -90,  y: 134, w: 128, h: 88 },
-    { href: "/icons/game/banderitas-sign.png", x: -62,  y: 130, w: 96,  h: 26 },
-    { href: "/icons/game/balloons.png",        x: -136, y: 150, w: 40,  h: 54 },
-    { href: "/icons/game/plants.png",          x: 34,   y: 152, w: 44,  h: 32 },
-    { href: "/icons/game/gift.png",            x: 10,   y: 190, w: 32,  h: 32 },
+    { href: "/icons/game/stage.png",           x: -110, y: 250, w: 128, h: 88 },
+    { href: "/icons/game/banderitas-sign.png", x: -82,  y: 246, w: 96,  h: 26 },
+    { href: "/icons/game/balloons.png",        x: -160, y: 270, w: 40,  h: 54 },
+    { href: "/icons/game/plants.png",          x: 20,   y: 280, w: 44,  h: 32 },
+    { href: "/icons/game/gift.png",            x: -20,  y: 310, w: 32,  h: 32 },
   ],
 ];
 
+/* the EXPANDED barangay road — a long serpentine across the 2000×1200
+   board so lesson stopovers sit ~103px apart (see tools/path_points_v2.mjs) */
 const TRAIL_D =
-  "M 100 195 C 280 125 500 110 670 155 C 830 200 850 275 700 312 " +
-  "C 500 358 320 305 260 385 C 210 452 350 522 560 502 C 720 487 830 432 900 352";
+  "M 140 260 C 420 140 820 120 1200 190 C 1560 250 1760 380 1620 520 " +
+  "C 1480 655 1000 560 700 640 C 420 715 280 820 420 950 " +
+  "C 560 1075 1000 1105 1350 1040 C 1650 985 1830 870 1880 700";
 
 /* small icon per screen type for the level-select list */
 const TYPE_ICONS: Record<Screen["type"], string> = {
@@ -205,21 +306,22 @@ const WALK_FRAMES: Record<string, number[]> = {
   girl: [0, 1, 2, 3],
 };
 
-/** The traveler, animated with the walking packs. */
-function WalkingAvatar({ gender }: { gender: string }) {
+/** The traveler — walking frames while on the move, a single idle
+    pose (sliced by tools/slice_traveler_idle.py) while standing. */
+function WalkingAvatar({ gender, walking }: { gender: string; walking: boolean }) {
   const [step, setStep] = useState(0);
   useEffect(() => {
+    if (!walking) return;
     const t = setInterval(() => setStep((s) => s + 1), 180);
     return () => clearInterval(t);
-  }, []);
+  }, [walking]);
   const who = gender === "female" ? "girl" : "boy";
-  const frames = WALK_FRAMES[who];
-  return (
-    <image
-      href={`/icons/game/walk/${who}-walk-${frames[step % frames.length]}.png`}
-      x={-22} y={-52} width={44} height={58}
-    />
-  );
+  // one shared, feet-anchored box for BOTH sprites — the character
+  // keeps the exact same height whether idle or walking
+  const href = walking
+    ? `/icons/game/walk/${who}-walk-${WALK_FRAMES[who][step % WALK_FRAMES[who].length]}.png`
+    : `/icons/game/idle/${who}-idle.png`;
+  return <image href={href} x={-22} y={-58} width={44} height={64} />;
 }
 
 export default function MainMenu({
@@ -240,24 +342,57 @@ export default function MainMenu({
   const [shakeIdx, setShakeIdx] = useState<number | null>(null);
   const [selectIdx, setSelectIdx] = useState<number | null>(null); // level-select dialog
   const [walking, setWalking] = useState(false); // traveler mid-walk to the next stop
+  const [hoverStop, setHoverStop] = useState<Stop | null>(null); // stop-point hover card
 
-  /* small screens: the map stays LARGE and becomes draggable/pannable */
+  /* the map world is LARGER than the screen (an expanded barangay with
+     a long road) — the view pans, always centered on the traveler */
   const compact = useMediaQuery("(max-height: 620px), (max-width: 760px)");
   const scrollerRef = useRef<HTMLDivElement>(null);
   const mapBoxRef = useRef<HTMLDivElement>(null);
 
+  /* mouse drag-to-pan (touch uses native overflow scrolling);
+     real drags suppress the click that follows */
+  const dragRef = useRef<{ x: number; y: number; sl: number; st: number; moved: boolean } | null>(null);
+  const suppressClickRef = useRef(false);
+  const dragStart = (e: ReactPointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    const sc = scrollerRef.current;
+    if (!sc) return;
+    dragRef.current = { x: e.clientX, y: e.clientY, sl: sc.scrollLeft, st: sc.scrollTop, moved: false };
+  };
+  const dragMove = (e: ReactPointerEvent) => {
+    const d = dragRef.current;
+    const sc = scrollerRef.current;
+    if (!d || !sc) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    if (Math.abs(dx) + Math.abs(dy) > 6) d.moved = true;
+    if (d.moved) {
+      sc.scrollLeft = d.sl - dx;
+      sc.scrollTop = d.st - dy;
+    }
+  };
+  const dragEnd = () => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (d?.moved) {
+      suppressClickRef.current = true; // don't let the drag "click" a stop
+      setTimeout(() => { suppressClickRef.current = false; }, 0);
+    }
+  };
+
   // keep the traveler centered in view (also follows them while walking)
   useEffect(() => {
-    if (!compact || !avatarPt) return;
+    if (!avatarPt) return;
     const sc = scrollerRef.current;
     const inner = mapBoxRef.current;
     if (!sc || !inner) return;
-    const scale = inner.clientWidth / 1000;
+    const scale = inner.clientWidth / 2000;
     sc.scrollTo({
       left: avatarPt.x * scale - sc.clientWidth / 2,
       top: avatarPt.y * scale - sc.clientHeight / 2,
     });
-  }, [avatarPt, compact]);
+  }, [avatarPt]);
   const [info, setInfo] = useState<Poi | null>(null);              // tapped map object
 
   /* --- overall progress → position along the road --- */
@@ -297,7 +432,7 @@ export default function MainMenu({
       setAvatarPt(at(target));
     } else {
       setWalking(true);
-      const dur = Math.min(2600, Math.max(900, (target - fromF) * L * 22)); // ~22ms per px
+      const dur = Math.min(3400, Math.max(900, (target - fromF) * L * 22)); // ~22ms per px
       const t0 = performance.now();
       const step = (now: number) => {
         const k = Math.min(1, (now - t0) / dur);
@@ -308,6 +443,11 @@ export default function MainMenu({
         } else {
           lastAvatarF = target; // arrived — commit the new position
           setWalking(false);
+          // the traveler has reached the next stop — pop the level
+          // picker so the next level is one tap away
+          if (!MODULES.every((m) => progress.completed[m.id])) {
+            setSelectIdx(cur);
+          }
         }
       };
       raf = requestAnimationFrame(step);
@@ -335,6 +475,19 @@ export default function MainMenu({
       : Math.max(progress.maxScreen[MODULES[mIdx].id] ?? 0, progress.screenIndex[MODULES[mIdx].id] ?? 0);
 
   const isLocked = (i: number) => !UNLOCK_ALL_LEVELS && i + 1 > progress.unlocked;
+
+  /* everything the map needs to know about one stop point */
+  const stopInfo = (s: Stop) => {
+    const mod = MODULES[s.m];
+    const screenIdx = s.k + NARRATIVE_SCREENS - 1;
+    const lessonsDone = lessonsDoneOf(
+      progress.screenIndex[mod.id] ?? 0,
+      !!progress.completed[mod.id]
+    );
+    const passed = lessonsDone >= s.k;
+    const playable = !isLocked(s.m) && screenIdx <= maxReached(s.m);
+    return { mod, screen: mod.screens[screenIdx], screenIdx, passed, playable };
+  };
 
   const clickStation = (i: number) => {
     if (isLocked(i)) {
@@ -388,49 +541,43 @@ export default function MainMenu({
           on desktop it fits the screen as before */}
       <Box
         ref={scrollerRef}
-        sx={
-          compact
-            ? {
-                alignSelf: "stretch",
-                flex: 1,
-                minHeight: 0,
-                overflow: "auto",
-                borderRadius: 3,
-                scrollbarWidth: "none",
-                "&::-webkit-scrollbar": { display: "none" },
-                WebkitOverflowScrolling: "touch",
-              }
-            : { display: "contents" }
-        }
+        onPointerDown={dragStart}
+        onPointerMove={dragMove}
+        onPointerUp={dragEnd}
+        onPointerLeave={dragEnd}
+        onClickCapture={(e) => {
+          if (suppressClickRef.current) { e.stopPropagation(); e.preventDefault(); }
+        }}
+        sx={{
+          alignSelf: "stretch",
+          flex: 1,
+          minHeight: 0,
+          overflow: "auto",
+          borderRadius: 3,
+          scrollbarWidth: "none",
+          "&::-webkit-scrollbar": { display: "none" },
+          WebkitOverflowScrolling: "touch",
+          ...(!compact && { cursor: "grab", "&:active": { cursor: "grabbing" } }),
+        }}
       >
       <Box
         ref={mapBoxRef}
         sx={{
           position: "relative",
-          ...(compact
-            ? {
-                // bigger than the screen — drag to explore the barangay
-                width: "max(1150px, 135vw)",
-              }
-            : {
-                // width is ALSO derived from the available height so the
-                // map always fits the screen — no clipping
-                width: "min(1320px, 97vw, calc((100vh - 112px) * 1.6667))",
-                "@supports (height: 100dvh)": {
-                  width: "min(1320px, 97vw, calc((100dvh - 112px) * 1.6667))",
-                },
-              }),
-          aspectRatio: "1000 / 600",
+          // the world is bigger than the screen — drag to explore the
+          // expanded barangay and its longer road
+          width: compact ? "max(2300px, 270vw)" : "max(2700px, 140vw)",
+          aspectRatio: "2000 / 1200",
           filter: "drop-shadow(0 12px 16px #0007)",
         }}
       >
-        <svg viewBox="0 0 1000 600" width="100%" height="100%" style={{ display: "block", overflow: "visible" }}>
+        <svg viewBox="0 0 2000 1200" width="100%" height="100%" style={{ display: "block", overflow: "visible" }}>
           {/* grass board */}
-          <rect x="22" y="22" width="956" height="556" rx="26" fill="#b9dd8f" stroke="#7cb342" strokeWidth="6" />
+          <rect x="22" y="22" width="1956" height="1156" rx="34" fill="#b9dd8f" stroke="#7cb342" strokeWidth="8" />
           {/* plaza green + pond accents */}
-          <ellipse cx="790" cy="430" rx="130" ry="78" fill="#a2d178" />
-          <ellipse cx="205" cy="205" rx="120" ry="72" fill="#cbe6a3" />
-          <ellipse cx="120" cy="555" rx="70" ry="22" fill="#81d4fa" stroke="#4fc3f7" strokeWidth="3" />
+          <ellipse cx="1780" cy="880" rx="160" ry="95" fill="#a2d178" />
+          <ellipse cx="380" cy="390" rx="210" ry="115" fill="#cbe6a3" />
+          <ellipse cx="175" cy="1115" rx="95" ry="30" fill="#81d4fa" stroke="#4fc3f7" strokeWidth="3" />
 
           {/* the barangay road (the module route) */}
           <path d={TRAIL_D} fill="none" stroke="#455a64" strokeWidth="40" strokeLinecap="round" />
@@ -441,9 +588,22 @@ export default function MainMenu({
           {/* barangay decorations — each anchored where it makes sense */}
           {/* banderitas repeat edge-to-edge, tiles OVERLAPPING so the
               string connects seamlessly across the whole map */}
-          {[10, 250, 490, 730].map((bx) => (
+          {[10, 250, 490, 730, 970, 1210, 1450, 1690].map((bx) => (
             <image key={bx} href="/icons/game/banderitas.png"
-              x={bx} y={6} width={260} height={142} preserveAspectRatio="none" />
+              x={bx} y={-30} width={260} height={142} preserveAspectRatio="none" />
+          ))}
+
+          {/* scattered scenery — every object is tappable for its story */}
+          {DECOR.map((d, i) => (
+            <image
+              key={i}
+              className="poi"
+              href={d.href}
+              x={d.x} y={d.y} width={d.w} height={d.h}
+              onClick={() => { sfxClick(); setInfo(d); }}
+            >
+              <title>{d.title}</title>
+            </image>
           ))}
 
           {/* clickable landmarks: hover pop + info card (church now at the center) */}
@@ -458,43 +618,57 @@ export default function MainMenu({
               <title>{p.title}</title>
             </image>
           ))}
-          <image href="/icons/game/tree.png" x={30} y={112} width={56} height={78} />
-          <image href="/icons/game/tree.png" x={905} y={128} width={52} height={72} />
-          <image href="/icons/game/tree.png" x={398} y={40} width={50} height={70} />
-          <image href="/icons/game/tree.png" x={100} y={486} width={54} height={75} />
-          <image href="/icons/game/tree.png" x={545} y={372} width={52} height={72} />
-          <image href="/icons/game/tree.png" x={330} y={60} width={52} height={72} />
-          <image href="/icons/game/tree.png" x={688} y={498} width={52} height={72} />
-          <image href="/icons/game/tree.png" x={215} y={64} width={44} height={62} />
-          <image href="/icons/game/tree.png" x={495} y={418} width={50} height={70} />
+          {TREES.map(([tx, ty, tw, th], i) => (
+            <image
+              key={i}
+              className="poi"
+              href="/icons/game/tree.png"
+              x={tx} y={ty} width={tw} height={th}
+              onClick={() => {
+                sfxClick();
+                setInfo({ href: "/icons/game/tree.png", x: tx, y: ty, w: tw, h: th, ...TREE_INFO });
+              }}
+            >
+              <title>{TREE_INFO.title}</title>
+            </image>
+          ))}
 
           {/* stop points — one per lesson; each is a TRIGGER: tapping a
               reached stop launches that exact lesson */}
           {stops.map((s, i) => {
-            const mod = MODULES[s.m];
-            // stop k ↔ screen index k+1 (screens 1–2 are narrative, not stops)
-            const screenIdx = s.k + NARRATIVE_SCREENS - 1;
-            const lessonsDone = lessonsDoneOf(
-              progress.screenIndex[mod.id] ?? 0,
-              !!progress.completed[mod.id]
-            );
-            const passed = lessonsDone >= s.k;
-            const playable = !isLocked(s.m) && screenIdx <= maxReached(s.m);
+            const { mod, screenIdx, passed, playable } = stopInfo(s);
+            const isNext = playable && !passed; // the next level to play
             return (
               <g
                 key={i}
                 className={playable ? "poi" : undefined}
                 style={{ cursor: playable ? "pointer" : "default" }}
+                onMouseEnter={() => setHoverStop(s)}
+                onMouseLeave={() => setHoverStop((h) => (h === s ? null : h))}
                 onClick={() => {
-                  if (!playable) { sfxWrong(); return; }
+                  if (!playable) {
+                    // locked stop — show its info card briefly instead
+                    sfxWrong();
+                    setHoverStop(s);
+                    setTimeout(() => setHoverStop((h) => (h === s ? null : h)), 1600);
+                    return;
+                  }
                   sfxClick();
                   onPlay(s.m, screenIdx); // each stop point triggers its lesson
                 }}
               >
-                <title>{`${mod.title} — Lesson ${s.k}: ${shortTitle(mod.screens[screenIdx])}`}</title>
+                {/* invisible wider hit area — easier to hover/tap */}
+                <circle cx={s.x} cy={s.y} r={16} fill="transparent" />
+                {/* pulsing halo marks the NEXT level to play */}
+                {isNext && (
+                  <circle
+                    cx={s.x} cy={s.y} r={13} fill="#ffeb3b88"
+                    style={{ transformBox: "fill-box", transformOrigin: "center", animation: "pulse .8s infinite alternate" }}
+                  />
+                )}
                 <circle
                   cx={s.x} cy={s.y} r={7}
-                  fill={passed ? mod.themeColor : playable ? "#fffdf5" : "#e7dfc9"}
+                  fill={passed ? mod.themeColor : isNext ? "#ffd54f" : playable ? "#fffdf5" : "#e7dfc9"}
                   stroke={passed ? "#ffffff" : "#8d6e63"}
                   strokeWidth={2.2}
                   opacity={isLocked(s.m) ? 0.45 : 1}
@@ -509,7 +683,7 @@ export default function MainMenu({
             const locked = isLocked(i);
             const done = progress.completed[m.id];
             const at = progress.screenIndex[m.id] ?? 0;
-            const label = done ? "✔ Completed — replay!" : locked ? "Locked" : at > 0 ? `Screen ${at + 1}/${SCREENS_PER_MODULE}` : "Start here!";
+            const label = done ? "✔ Completed — replay!" : locked ? "Locked" : at > NARRATIVE_SCREENS - 1 ? `Level ${at - NARRATIVE_SCREENS + 1}/${LESSON_COUNT}` : "Start here!";
             return (
               <g
                 key={m.id}
@@ -584,9 +758,9 @@ export default function MainMenu({
               style={{ cursor: "pointer" }}
             >
               <ellipse cy="8" rx="16" ry="5" fill="#00000033" />
-              <WalkingAvatar gender={progress.gender} />
+              <WalkingAvatar gender={progress.gender} walking={walking} />
               {progress.name && (
-                <text y="-58" textAnchor="middle" fontSize="13" fontWeight="900" fill="#bf360c" stroke="#fff8e1" strokeWidth="4" paintOrder="stroke">
+                <text y="-66" textAnchor="middle" fontSize="13" fontWeight="900" fill="#bf360c" stroke="#fff8e1" strokeWidth="4" paintOrder="stroke">
                   {progress.name}
                 </text>
               )}
@@ -600,6 +774,46 @@ export default function MainMenu({
             </g>
           )}
         </svg>
+
+        {/* hover card — identifies the stop point under the cursor */}
+        {hoverStop && (() => {
+          const { mod, screen, passed, playable } = stopInfo(hoverStop);
+          return (
+            <Box
+              sx={{
+                position: "absolute",
+                left: `${(hoverStop.x / 2000) * 100}%`,
+                top: `${(hoverStop.y / 1200) * 100}%`,
+                transform: "translate(-50%, calc(-100% - 14px))",
+                pointerEvents: "none",
+                zIndex: 25,
+                bgcolor: "#fffde7",
+                border: `2.5px solid ${playable ? mod.themeColor : "#9e9e9e"}`,
+                borderRadius: 2,
+                px: 1.3, py: 0.7,
+                minWidth: 168, maxWidth: 230,
+                boxShadow: "0 6px 14px #0006",
+                animation: "popIn .18s",
+              }}
+            >
+              <Typography sx={{ fontWeight: 900, fontSize: 12.5, color: "#3e2723", lineHeight: 1.25 }}>
+                {TYPE_ICONS[screen.type]} Level {hoverStop.k}: {shortTitle(screen)}
+              </Typography>
+              <Typography sx={{ fontSize: 10.5, color: "#8d6e63", fontWeight: 700 }}>
+                {PLACE_NAMES[hoverStop.m]}
+              </Typography>
+              <Typography sx={{
+                fontSize: 11, fontWeight: 800, mt: 0.2,
+                color: passed ? "#2e7d32" : playable ? "#e65100" : "#757575",
+              }}>
+                {passed ? "✔ Completed — tap to replay" : playable ? "▶ Next level — tap to play!" : "🔒 Locked — reach this stop first"}
+              </Typography>
+              <Typography sx={{ fontSize: 10.5, fontWeight: 800, color: "#f57f17", display: "flex", alignItems: "center", gap: 0.4 }}>
+                <img src="/icons/game/coin.png" width={12} height={12} alt="" /> +{screen.reward} coins
+              </Typography>
+            </Box>
+          );
+        })()}
       </Box>
       </Box>
 
@@ -630,7 +844,7 @@ export default function MainMenu({
       )}
 
       {/* bottom-left: music + fullscreen */}
-      <Box sx={{ position: "absolute", left: 18, bottom: 16, display: "flex", gap: 1 }}>
+      <Box sx={{ position: "absolute", left: 18, bottom: 16, display: "flex", gap: 1, zIndex: 10 }}>
         <Tooltip title="Music">
           <IconButton onClick={toggleMusic} sx={cornerBtn("#c2185b")}>
             {musicOn ? <MusicNoteRoundedIcon /> : <MusicOffRoundedIcon />}
@@ -718,7 +932,7 @@ export default function MainMenu({
                 >
                   {resume < NARRATIVE_SCREENS
                     ? "▶ Start the Adventure!"
-                    : `▶ Continue — Lesson ${resume - NARRATIVE_SCREENS + 1}: ${shortTitle(m.screens[resume])}`}
+                    : `▶ Continue — Level ${resume - NARRATIVE_SCREENS + 1}: ${shortTitle(m.screens[resume])}`}
                 </Button>
                 {/* lessons only — the mission briefing plays automatically at the start */}
                 <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 1 }}>

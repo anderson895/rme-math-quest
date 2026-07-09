@@ -119,8 +119,11 @@ export default function GameShell(p: Props) {
             <Chip label={`${progress.avatar} ${progress.name}`} size="small"
               sx={{ bgcolor: "#e8f5e9d9", fontWeight: 800 }} />
           )}
-          <Chip label={`${p.module.title} — Screen ${p.screenNumber}/${p.screenCount}`} size="small"
-            sx={{ bgcolor: "#ffffffd9", fontWeight: 700 }} />
+          <Chip
+            label={`${p.module.title} — ${
+              p.screenNumber <= 1 ? "Mission Briefing" : `Level ${p.screenNumber - 1}/${p.screenCount - 1}`
+            }`}
+            size="small" sx={{ bgcolor: "#ffffffd9", fontWeight: 700 }} />
         </Box>
         <Box sx={{ display: "flex", gap: 1 }}>
           <Chip label={p.screen.rme} size="small" sx={{ bgcolor: "#fff3e0d9", fontWeight: 600 }} />

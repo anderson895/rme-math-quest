@@ -2,6 +2,8 @@ import type { Frac } from "../types";
 
 export const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
 
+export const lcm = (a: number, b: number): number => (a * b) / gcd(a, b);
+
 /** value of a fraction (mixed supported) as improper numerator/denominator */
 export const improper = (f: Frac): [number, number] => [(f.w ?? 0) * f.d + f.n, f.d];
 

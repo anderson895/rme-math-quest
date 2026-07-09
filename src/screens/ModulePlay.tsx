@@ -26,6 +26,26 @@ const TOOLSETS: Partial<Record<Screen["type"], string[]>> = {
   "bridge-build": ["ruler", "scissors", "glue"],
   "jar-fill":     ["divider", "ruler"],
   "punch-mix":    ["ladle", "ruler"],
+  numberline:     ["ruler"],
+  "model-shade":  ["brush", "eraser", "ruler"],
+  mcq:            ["magnifier"],
+  order:          ["scale", "ruler"],
+  "sort-bins":    ["table"],
+  balance:        ["ruler"],
+  simplify:       ["factor"],
+  equation:       ["lcd", "scratchpad"],
+  // boss stays tool-free on purpose — it's a timed assessment
+};
+
+/* HIGHER levels (lesson 8+) demand a COMBINATION of instruments:
+   a second tool joins the set and part of the level starts hidden
+   or locked until that tool is used */
+const ADVANCED_AT = 8; // screen index (lesson number) where combos begin
+const ADVANCED_TOOLS: Partial<Record<Screen["type"], string[]>> = {
+  numberline:  ["magnifier"],  // road signs arrive covered — inspect them
+  "sort-bins": ["magnifier"],  // shelf labels are covered — inspect them
+  balance:     ["magnifier"],  // the customer's order is a mystery
+  simplify:    ["eraser"],     // the old label is dirty — clean it first
 };
 
 /** Runs one module: renders the current screen's mechanic inside GameShell
@@ -55,7 +75,11 @@ export default function ModulePlay({
   const [inOutro, setInOutro] = useState(false);
 
   const screen = module.screens[idx];
-  const tools = TOOLSETS[screen.type];
+  const advanced = idx >= ADVANCED_AT;
+  const base = TOOLSETS[screen.type];
+  const tools = base
+    ? [...base, ...(advanced ? ADVANCED_TOOLS[screen.type] ?? [] : [])]
+    : undefined;
 
   /* the outro rendered as a narrative dialogue screen (same look as
      the storyboard feedback slides) */
@@ -82,6 +106,11 @@ export default function ModulePlay({
 
   const handleTool = (id: string) => {
     setToolUsed(true);
+    // the eraser is a one-shot action, not a mode — pulse the signal instead
+    if (id === "eraser") {
+      setEraseSignal((s) => s + 1);
+      return;
+    }
     setActiveTools((t) => (t.includes(id) ? t.filter((x) => x !== id) : [...t, id]));
   };
 
@@ -180,6 +209,7 @@ export default function ModulePlay({
       coins={progress.coins}
       solved={solved && screen.type !== "dialogue"}
       hint={screen.type === "equation" ? screen.hint : undefined}
+      advanced={advanced}
       tools={tools}
       activeTools={activeTools}
       toolAttention={!!tools && !toolUsed && !solved}
@@ -191,6 +221,7 @@ export default function ModulePlay({
       <Mechanic
         key={`${screen.id}-${resetKey}`}
         screen={screen}
+        advanced={advanced}
         onSolved={handleSolved}
         onDialogueDone={dialogueDone}
         activeTools={activeTools}
@@ -203,6 +234,7 @@ export default function ModulePlay({
 
 function Mechanic({
   screen,
+  advanced,
   onSolved,
   onDialogueDone,
   activeTools,
@@ -210,6 +242,7 @@ function Mechanic({
   eraseSignal,
 }: {
   screen: Screen;
+  advanced: boolean;
   onSolved: (perfect: boolean) => void;
   onDialogueDone: () => void;
   activeTools: string[];
@@ -223,14 +256,14 @@ function Mechanic({
     case "bridge-build": return <BridgeBuild screen={screen} onSolved={onSolved} activeTools={activeTools} closePanel={closePanel} />;
     case "jar-fill":    return <JarFill screen={screen} onSolved={onSolved} {...toolProps} />;
     case "punch-mix":   return <PunchMix screen={screen} onSolved={onSolved} {...toolProps} />;
-    case "numberline":  return <NumberLinePlot screen={screen} onSolved={onSolved} />;
-    case "model-shade": return <ModelShade screen={screen} onSolved={onSolved} />;
-    case "mcq":         return <MCQ screen={screen} onSolved={onSolved} />;
-    case "order":       return <OrderCards screen={screen} onSolved={onSolved} />;
-    case "sort-bins":   return <SortBins screen={screen} onSolved={onSolved} />;
-    case "balance":     return <BalanceScale screen={screen} onSolved={onSolved} />;
-    case "simplify":    return <SimplifyStation screen={screen} onSolved={onSolved} />;
-    case "equation":    return <EquationBuilder screen={screen} onSolved={onSolved} />;
+    case "numberline":  return <NumberLinePlot screen={screen} onSolved={onSolved} activeTools={activeTools} advanced={advanced} />;
+    case "model-shade": return <ModelShade screen={screen} onSolved={onSolved} {...toolProps} />;
+    case "mcq":         return <MCQ screen={screen} onSolved={onSolved} activeTools={activeTools} />;
+    case "order":       return <OrderCards screen={screen} onSolved={onSolved} activeTools={activeTools} />;
+    case "sort-bins":   return <SortBins screen={screen} onSolved={onSolved} activeTools={activeTools} closePanel={closePanel} advanced={advanced} />;
+    case "balance":     return <BalanceScale screen={screen} onSolved={onSolved} activeTools={activeTools} advanced={advanced} />;
+    case "simplify":    return <SimplifyStation screen={screen} onSolved={onSolved} activeTools={activeTools} eraseSignal={eraseSignal} advanced={advanced} />;
+    case "equation":    return <EquationBuilder screen={screen} onSolved={onSolved} activeTools={activeTools} advanced={advanced} />;
     case "boss":        return <BossChallenge screen={screen} onSolved={onSolved} />;
   }
 }

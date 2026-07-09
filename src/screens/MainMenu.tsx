@@ -66,7 +66,7 @@ const TRAIL_START_F = 0.02;
 
 /* per-station offset for the status label ("Start here!" etc.) */
 const LABEL_OFF = [
-  { x: 85, y: 52 },
+  { x: -120, y: 62 },    // under Tatay Ben, beside his palayan
   { x: 80, y: -145 },
   { x: -100, y: -108 },  // above Kuya Onyok, left of the road's final climb
 ];
@@ -75,7 +75,7 @@ const LABEL_OFF = [
    they never cover the stop points; the node itself stays visible
    as the module's final stop */
 const CHAR = [
-  { x: 85, y: -12, s: 110 },
+  { x: -120, y: -13, s: 110 },  // Tatay Ben stands at the edge of his palayan
   { x: 80, y: -75, s: 110 },
   { x: -100, y: -45, s: 100 },
 ];
@@ -91,10 +91,21 @@ const MAP_POIS: Poi[] = [
     title: "Bahay Kubo ni Bunso",
     text: "Dito nakatira si Bunso — dito nagsisimula ang iyong math adventure sa barangay!",
   },
+  // Harvest Festival grounds — a row of THREE stalls down the right side
   {
     href: "/icons/game/festival-stall.png", x: 1755, y: 205, w: 128, h: 102,
     title: "Harvest Festival",
     text: "Ang gantimpala ng masipag na pag-aaral sa Bukid: masaganang ani at masayang pagdiriwang!",
+  },
+  {
+    href: "/icons/game/festival-stall.png", x: 1730, y: 330, w: 112, h: 90,
+    title: "Harvest Festival",
+    text: "Tatlong stall para sa tatlong module — kapag natapos mo lahat, pinakamasaya ang pista!",
+  },
+  {
+    href: "/icons/game/festival-stall.png", x: 1770, y: 455, w: 112, h: 90,
+    title: "Harvest Festival",
+    text: "Dito ibebenta ang ani mula sa palayan ni Tatay Ben — pantay-pantay ang partihan ng barangay!",
   },
   {
     href: "/icons/game/church.png", x: 970, y: 670, w: 195, h: 230,
@@ -128,22 +139,6 @@ const PLACE_NAMES = ["Bukid ni Tatay Ben", "Tindahan ni Manang Lalay", "Plaza ng
 /* scenery scattered around the barangay — every object is clickable
    and shows its own description card (same as the landmarks) */
 const DECOR: Poi[] = [
-  // palayan (rice fields) near the Bukid
-  {
-    href: "/icons/game/palay.png", x: 1280, y: 330, w: 60, h: 80,
-    title: "Palayan ni Tatay Ben",
-    text: "Hitik sa butil ang mga palay — malapit na ang anihan para sa Harvest Festival!",
-  },
-  {
-    href: "/icons/game/palay.png", x: 1360, y: 385, w: 52, h: 70,
-    title: "Palayan ni Tatay Ben",
-    text: "Bawat butil ng palay ay bunga ng tiyaga — tulad ng pag-aaral ng math!",
-  },
-  {
-    href: "/icons/game/palay.png", x: 1305, y: 430, w: 48, h: 64,
-    title: "Palayan ni Tatay Ben",
-    text: "Pantay-pantay ang pagkakahati ng mga pitak ng palayan — parang fractions!",
-  },
   {
     href: "/icons/game/signpost.png", x: 1180, y: 280, w: 50, h: 66,
     title: "Karatula ng Bukid",
@@ -173,11 +168,6 @@ const DECOR: Poi[] = [
   },
   // left countryside, on the way to the Tindahan
   {
-    href: "/icons/game/palay.png", x: 110, y: 690, w: 56, h: 74,
-    title: "Palay sa Gilid ng Daan",
-    text: "Pinatutuyo sa araw ang ani bago dalhin sa tindahan ni Manang Lalay.",
-  },
-  {
     href: "/icons/game/basket.png", x: 255, y: 1075, w: 40, h: 34,
     title: "Basket ng Mangingisda",
     text: "Ginagamit pag-uwi ng huli mula sa maliit na palaisdaan ng barangay.",
@@ -200,22 +190,28 @@ const DECOR: Poi[] = [
   },
   // right countryside, on the way to the Plaza
   {
-    href: "/icons/game/palay.png", x: 1600, y: 760, w: 56, h: 74,
-    title: "Palayan sa Silangan",
-    text: "Ang pinakamalawak na palayan ng barangay — kasama sa susunod na anihan.",
-  },
-  {
     href: "/icons/game/plants.png", x: 1450, y: 820, w: 52, h: 38,
     title: "Halamanan sa Plaza",
     text: "Inihahanda bilang palamuti sa darating na fiesta sa nayon!",
   },
 ];
 
+/* Palayan ni Tatay Ben — ALL the barangay's palay gathered into ONE
+   rice field beside the Bukid: a fenced paddy divided into equal
+   pitak rows, each planted with a hilera of palay (fractions in
+   the scenery — every pitak is an equal share of the whole field) */
+const PALAYAN = {
+  x: 1240, y: 315, w: 250, h: 160,
+  rows: 3, cols: 5,
+  title: "Palayan ni Tatay Ben",
+  text: "Sama-sama na ang lahat ng palay ng barangay sa iisang palayan! Pantay-pantay ang mga pitak — parang fractions: bawat hilera ay bahagi ng buo. Malapit na ang anihan para sa Harvest Festival!",
+};
+
 /* barangay trees — clickable like every other map object */
 const TREES: [number, number, number, number][] = [
   [42, 140, 60, 84], [330, 52, 54, 76], [740, 36, 56, 78], [1050, 60, 52, 72],
   [1460, 70, 54, 76], [1830, 110, 52, 72], [95, 560, 56, 78], [250, 700, 50, 70],
-  [180, 1040, 56, 78], [560, 420, 56, 78], [890, 300, 50, 70], [1240, 290, 52, 72],
+  [180, 1040, 56, 78], [560, 420, 56, 78], [890, 300, 50, 70], [1060, 330, 52, 72],
   [1530, 690, 52, 72], [690, 860, 54, 76], [1690, 1040, 54, 76],
 ];
 const TREE_INFO = {
@@ -226,8 +222,8 @@ const TREE_INFO = {
 /* buildings/props rendered right BESIDE their station (offsets are
    relative to the station node, so they always stay together) */
 const STATION_DECOR: { href: string; x: number; y: number; w: number; h: number }[][] = [
-  // 1. Bukid — palay harvest beside Tatay Ben
-  [{ href: "/icons/game/palay.png", x: 50, y: -46, w: 56, h: 72 }],
+  // 1. Bukid — its palay now all live together in the PALAYAN field
+  [],
   // 2. Tindahan — the sari-sari store on Manang Lalay's LEFT side,
   // with a hanging parol, its timbangan, and a basket in front
   [
@@ -592,6 +588,56 @@ export default function MainMenu({
             <image key={bx} href="/icons/game/banderitas.png"
               x={bx} y={-30} width={260} height={142} preserveAspectRatio="none" />
           ))}
+
+          {/* Palayan ni Tatay Ben — all the palay gathered into one field:
+              equal pitak rows behind, a hilera of palay planted in each */}
+          <g
+            className="poi"
+            onClick={() => {
+              sfxClick();
+              setInfo({
+                href: "/icons/game/palay.png",
+                x: PALAYAN.x, y: PALAYAN.y, w: PALAYAN.w, h: PALAYAN.h,
+                title: PALAYAN.title, text: PALAYAN.text,
+              });
+            }}
+          >
+            <title>{PALAYAN.title}</title>
+            {/* the paddy: wet field framed by a mud dike */}
+            <rect
+              x={PALAYAN.x} y={PALAYAN.y} width={PALAYAN.w} height={PALAYAN.h} rx={12}
+              fill="#aad178" stroke="#6d4c41" strokeWidth={5}
+            />
+            {/* mud dikes dividing the field into equal pitak rows */}
+            {Array.from({ length: PALAYAN.rows - 1 }, (_, r) => {
+              const dy = PALAYAN.y + ((r + 1) * PALAYAN.h) / PALAYAN.rows;
+              return (
+                <line
+                  key={r}
+                  x1={PALAYAN.x + 8} x2={PALAYAN.x + PALAYAN.w - 8}
+                  y1={dy} y2={dy}
+                  stroke="#8d6e63" strokeWidth={4} strokeLinecap="round"
+                />
+              );
+            })}
+            {/* every palay of the barangay, planted in neat hilera */}
+            {Array.from({ length: PALAYAN.rows * PALAYAN.cols }, (_, i) => {
+              const r = Math.floor(i / PALAYAN.cols);
+              const c = i % PALAYAN.cols;
+              const cellW = PALAYAN.w / PALAYAN.cols;
+              const rowH = PALAYAN.h / PALAYAN.rows;
+              const pw = 38, ph = 50;
+              return (
+                <image
+                  key={i}
+                  href="/icons/game/palay.png"
+                  x={PALAYAN.x + c * cellW + (cellW - pw) / 2}
+                  y={PALAYAN.y + (r + 1) * rowH - ph - 3}
+                  width={pw} height={ph}
+                />
+              );
+            })}
+          </g>
 
           {/* scattered scenery — every object is tappable for its story */}
           {DECOR.map((d, i) => (

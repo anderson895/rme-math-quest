@@ -1,15 +1,24 @@
-import { Box, Button, Typography } from "@mui/material";
-import { useState } from "react";
+import { Box, Button, Chip, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
 import type { ModelShadeScreen } from "../../types";
 import FractionText from "../FractionText";
 import { sfxClick, sfxCorrect, sfxWrong } from "../../sound";
 
-/** Click garden beds to shade them until the model shows frac. */
+/** Click garden beds to shade them until the model shows frac.
+    INSTRUMENTS (required):
+    • 🖌️ brush — beds can ONLY be shaded while the brush is in hand
+      (tapping with bare hands does nothing but a warning).
+    • 🧽 eraser — clears all the beds. 📏 ruler — live shaded count. */
 export default function ModelShade({
   screen,
+  activeTools = [],
+  eraseSignal = 0,
   onSolved,
 }: {
   screen: ModelShadeScreen;
+  activeTools?: string[];
+  closePanel?: (id: string) => void;
+  eraseSignal?: number;
   onSolved: (perfect: boolean) => void;
 }) {
   const parts = screen.frac.d;
@@ -18,8 +27,26 @@ export default function ModelShade({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
+  const ruler = activeTools.includes("ruler");
+  const brush = activeTools.includes("brush");
+
+  /* 🧽 eraser pulse: clear all the beds */
+  useEffect(() => {
+    if (eraseSignal === 0 || done) return;
+    sfxClick();
+    setShaded(Array(parts).fill(false));
+    setFeedback("🧽 Beds cleared! Shade them again.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eraseSignal]);
+
   const toggle = (i: number) => {
     if (done) return;
+    /* the brush is the planting instrument — no brush, no shading */
+    if (!brush) {
+      sfxWrong();
+      setFeedback("🖌️ Grab the brush tool first — you can't plant with bare hands!");
+      return;
+    }
     sfxClick();
     setShaded((s) => s.map((v, j) => (j === i ? !v : v)));
     setFeedback(null);
@@ -50,6 +77,14 @@ export default function ModelShade({
       <Typography sx={{ fontWeight: 700, mb: 2, color: "#33691e", display: "flex", justifyContent: "center", alignItems: "center" }}>
         🌱 Tap the beds to shade <FractionText frac={screen.frac} size={18} /> of the plot.
       </Typography>
+
+      {/* 📏 ruler: live measurement of the shading */}
+      {ruler && (
+        <Chip
+          label={`📏 shaded ${shaded.filter(Boolean).length} of ${parts} beds`}
+          sx={{ mb: 1.5, bgcolor: "#e0f7fa", border: "2px solid #00838f", fontWeight: 800, color: "#006064" }}
+        />
+      )}
 
       <Box
         sx={{

@@ -30,17 +30,26 @@ import { useGame } from "../state/GameContext";
 import GameIcon from "./GameIcon";
 import FullscreenButton from "./FullscreenButton";
 
+/* emoji-style tool icon (same pattern as the reference buttons) */
+const emojiIcon = (e: string) => (
+  <Typography component="span" sx={{ fontSize: 20, lineHeight: 1 }}>{e}</Typography>
+);
+
 /* level tools: each has its own function; ruler/eraser combine with the rest */
 const TOOL_DEFS: Record<string, { icon: ReactNode; label: string; color: string }> = {
   scissors: { icon: <ContentCutRoundedIcon />,       label: "Cutting tool — cut into equal parts", color: "#c2185b" },
   divider:  { icon: <ViewAgendaRoundedIcon />,       label: "Jar divider — choose jar sections",   color: "#c2185b" },
   ladle:    { icon: <SoupKitchenRoundedIcon />,      label: "Ladle rack — pour fractions",         color: "#c2185b" },
   ruler:    { icon: <StraightenRoundedIcon />,       label: "Ruler — measure the fractions",       color: "#00838f" },
-  glue:     {
-    icon: <Typography component="span" sx={{ fontSize: 20, lineHeight: 1 }}>🧴</Typography>,
-    label: "Glue — stick pieces together",
-    color: "#6d4c41",
-  },
+  glue:     { icon: emojiIcon("🧴"),                 label: "Glue — stick pieces together",        color: "#6d4c41" },
+  magnifier:  { icon: emojiIcon("🔍"), label: "Magnifier — inspect covered signs & cards",  color: "#c2185b" },
+  brush:      { icon: emojiIcon("🖌️"), label: "Brush — the only way to shade the beds",     color: "#c2185b" },
+  eraser:     { icon: emojiIcon("🧽"), label: "Sponge — clean the label / clear your work", color: "#546e7a" },
+  scale:      { icon: emojiIcon("⚖️"), label: "Timbangan — weigh the sacks",                color: "#c2185b" },
+  table:      { icon: emojiIcon("✖️"), label: "Inventory checker — open boxes & see multiples", color: "#c2185b" },
+  factor:     { icon: emojiIcon("🔍"), label: "Factor finder — powers the ÷ machine",       color: "#c2185b" },
+  lcd:        { icon: emojiIcon("🔢"), label: "LCD machine — solve the common denominator", color: "#c2185b" },
+  scratchpad: { icon: emojiIcon("📝"), label: "Scratchpad — write your solution",           color: "#00838f" },
 };
 
 /* step-by-step guide per mechanic, shown with arrows under the banner */
@@ -49,15 +58,24 @@ const STEP_GUIDES: Partial<Record<Screen["type"], string[]>> = {
   "bridge-build": ["📏 Measure the gap", "✂️ Cut pieces that fit", "🧴 Glue them into the bridge"],
   "jar-fill":    ["Tap the 🫙 divider & pick a size", "Tap sections to fill candy", "Serve the customer"],
   "punch-mix":   ["Tap the 🥄 ladle rack", "Pour exactly to the line", "📏 Ruler shows the level"],
-  order:         ["Load sacks smallest → largest", "Tap a loaded sack to take it back", "Check — the carabao hauls it away!"],
-  numberline:    ["Tap a road sign", "Tap its spot on the road", "Place all signs"],
-  "model-shade": ["Tap beds to shade", "Count the shaded parts", "Press Check"],
-  mcq:           ["Read the question", "Tap the best answer"],
-  "sort-bins":   ["Tap a box", "Tap its multiple shelf", "Sort them all"],
-  balance:       ["Read the target weight", "Tap the sack that balances"],
-  simplify:      ["Tap a common factor ÷", "Repeat until simplest"],
-  equation:      ["Find the LCD", "Type your answer", "Press Check"],
+  order:         ["⚖️ Weigh every sack", "Load smallest → largest", "📏 Verify, then Check!"],
+  numberline:    ["📏 Measure the road", "Tap a road sign", "Tap its spot on the road"],
+  "model-shade": ["Grab the 🖌️ brush", "Tap beds to shade", "Press Check"],
+  mcq:           ["🔍 Inspect every card", "Tap your answer"],
+  "sort-bins":   ["✖️ Open the boxes", "Tap a box", "Tap its multiple shelf"],
+  balance:       ["📏 Measure the sacks", "Tap the sack that balances"],
+  simplify:      ["🔍 Turn on the factor finder", "Tap a common factor ÷", "Repeat until simplest"],
+  equation:      ["🔢 Solve the LCD machine", "Type your answer", "Press Check"],
   boss:          ["Watch the timer", "Answer every question"],
+};
+
+/* higher levels combine tools — their guides show the full sequence */
+const ADVANCED_GUIDES: Partial<Record<Screen["type"], string[]>> = {
+  numberline:  ["📏 Measure the road", "🔍 Inspect the covered signs", "Place them on the road"],
+  "sort-bins": ["✖️ Open the boxes", "🔍 Check the shelf signs", "Sort them all"],
+  balance:     ["🔍 Read the mystery order", "📏 Measure the sacks", "Balance the scale"],
+  simplify:    ["🧽 Clean the dirty label", "🔍 Find common factors", "÷ until simplest"],
+  equation:    ["🔢 Solve the LCD machine", "📝 Write your solution", "Type & Check"],
 };
 
 interface Props {
@@ -68,6 +86,7 @@ interface Props {
   coins: number;
   solved: boolean;
   hint?: string;
+  advanced?: boolean;     // lesson 8+ — tool-combination levels
   /* level tools (reference-style buttons at the lower right); each has
      its own function and some combine — e.g. 📏 ruler + ✂️ scissors
      shows measured piece sizes inside the cutting machine */
@@ -155,15 +174,17 @@ export default function GameShell(p: Props) {
           ▼
         </Typography>
 
-        {/* step guide arrows */}
-        {STEP_GUIDES[p.screen.type] && (
+        {/* step guide arrows (combo levels get their own sequence) */}
+        {(() => {
+          const guide = (p.advanced && ADVANCED_GUIDES[p.screen.type]) || STEP_GUIDES[p.screen.type];
+          return guide && (
           <Box sx={{
             display: "flex", alignItems: "center", gap: 0.8, flexWrap: "wrap", justifyContent: "center",
             bgcolor: "#fff8e1e6", border: "2px solid #f9a825", borderRadius: 5, px: 1.5, py: 0.4, mt: 0.3,
             // short screens (mobile landscape): free the space for the game
             "@media (max-height: 540px)": { display: "none" },
           }}>
-            {STEP_GUIDES[p.screen.type]!.map((step, i, arr) => (
+            {guide.map((step, i, arr) => (
               <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
                 <Box sx={{
                   width: 20, height: 20, borderRadius: "50%", bgcolor: "#f9a825", color: "#fff",
@@ -181,7 +202,8 @@ export default function GameShell(p: Props) {
               </Box>
             ))}
           </Box>
-        )}
+          );
+        })()}
       </Box>
 
       {/* center workspace panel */}
